@@ -111,6 +111,7 @@ return {
                         DiagnosticFloatingInfo = { link = "DiagnosticInfo" },
                         DiagnosticFloatingHint = { link = "DiagnosticHint" },
                         DiagnosticFloatingOk = { link = "DiagnosticOk" },
+			CursorLineNr = { fg = br(pal.dragonRed, 20), bg = theme.ui.bg_gutter, bold = false },
                         -- TODO:
                         -- ToggleTerm1FloatBorder = { link = "FloatBorder" },
 					}
