@@ -146,7 +146,7 @@ return {
 						vim.fn.jobstart({ "xdg-open", path }, { detach = true })
 					end,
 					run_command = function(state)
-						local node = state.tree:get_node()
+				local node = state.tree:get_node()
 						local path = node:get_id()
 						vim.api.nvim_input(": " .. path .. "<Home>")
 					end,
@@ -246,6 +246,13 @@ return {
 	},
 	{
 		"s1n7ax/nvim-window-picker",
-		version = "2.*",
+        name = "window-picker",
+        event = "VeryLazy",
+        version = "2.*",
+        config = function()
+            require"window-picker".setup({
+                show_prompt = false
+            })
+        end
 	},
 }

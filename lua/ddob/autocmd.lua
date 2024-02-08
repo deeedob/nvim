@@ -29,7 +29,6 @@ autocmd("BufWinEnter", {
 	command = "setlocal formatoptions-=o",
 })
 
-
 -- Fancy yank
 autocmd("TextYankPost", {
 	group = augroup("highlight_yank"),
@@ -66,21 +65,21 @@ autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
 
 autocmd({ "TermOpen" }, {
 	group = augroup("termopen"),
-    callback = function()
-        vim.wo.foldcolumn = "0"
-        vim.wo.relativenumber	= false
-		vim.wo.number			= false
-		vim.o.signcolumn		= "no"
+	callback = function()
+		vim.wo.foldcolumn = "0"
+		vim.wo.relativenumber = false
+		vim.wo.number = false
+		vim.o.signcolumn = "no"
 		vim.cmd([[ startinsert ]])
-    end
+	end,
 })
 
 -- Add filetypes
 vim.filetype.add({
 	extension = {
-        rasi = "rasi",
-        qml = "qml"
-    },
+		rasi = "rasi",
+		qml = "qml",
+	},
 	pattern = {
 		[".*/waybar/config"] = "jsonc",
 		[".*/mako/config"] = "dosini",

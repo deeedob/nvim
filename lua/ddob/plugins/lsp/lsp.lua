@@ -69,6 +69,10 @@ return {
 		"neovim/nvim-lspconfig",
 		lazy = false,
 		config = function()
+			require("neodev").setup({
+				-- library = { plugins = { "nvim-dap-ui" }, types = true },
+			})
+
 			require("mason").setup()
 			local mason_lspconfig = require("mason-lspconfig")
 			mason_lspconfig.setup({
@@ -76,9 +80,6 @@ return {
 				automatic_installation = true,
 			})
 			local dconf = require("ddob.config")
-			require("neodev").setup({
-				library = { plugins = { "nvim-dap-ui" }, types = true },
-			})
 
 			-- Diagnostics config
 			vim.diagnostic.config({

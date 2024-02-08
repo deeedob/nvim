@@ -3,8 +3,8 @@ local nvim_config_path = vim.fn.stdpath("config")
 
 return {
 	{
-		-- dir = "~/repos/cmake-tools.nvim",
-		"Civitasv/cmake-tools.nvim",
+		dir = "~/repos/cmake-tools.nvim",
+		-- "Civitasv/cmake-tools.nvim",
 		ft = { "cmake", "cpp" },
 		keys = {
 			{ "<leader>cg", ":CMakeGenerate<CR>", desc = "CMake Configure" },
@@ -34,13 +34,13 @@ return {
 		opts = function()
 			-- Toggle List Characters Command
 			vim.api.nvim_create_user_command("CMakeWipe", function()
-                local build_dir = require("cmake-tools").get_build_directory();
-                local cmd = "rm -rf " .. build_dir.filename
-                print(cmd)
-                -- vim.fn.execute(cmd)
-                vim.fn.system(cmd)
-                vim.cmd([[CMakeGenerate]])
-                -- vim.fn.execute("rm -rf")
+				local build_dir = require("cmake-tools").get_build_directory()
+				local cmd = "rm -rf " .. build_dir.filename
+				print(cmd)
+				-- vim.fn.execute(cmd)
+				vim.fn.system(cmd)
+				vim.cmd([[CMakeGenerate]])
+				-- vim.fn.execute("rm -rf")
 			end, { desc = "Wipe build dir and start fresh" })
 
 			vim.keymap.set("n", "<leader>cw", ":CMakeWipe<cr>", { desc = "Wipe Build Dir", remap = true })
@@ -89,17 +89,13 @@ return {
 	{
 		"gauteh/vim-cppman",
 		ft = { "c", "cpp", "objc", "objcpp", "cuda" },
-		keys = {
-			{
-				"KK",
-				function()
-					local word = vim.fn.expand("<cword>")
-					local escaped_word = vim.fn.fnameescape(word)
-					vim.cmd("Cppman " .. escaped_word)
-				end,
-				desc = "Open cppman",
-			},
-		},
+		config = function(_, opts)
+			vim.keymap.set("n", "KK", function()
+				local word = vim.fn.expand("<cword>")
+				local escaped_word = vim.fn.fnameescape(word)
+				vim.cmd("Cppman " .. escaped_word)
+			end, { desc = "Open cppman" })
+		end,
 	},
 
 	-- Enhanced clangd

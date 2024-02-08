@@ -27,22 +27,24 @@ return {
 			local hl_tabline = util.extract_nvim_hl("TabLine")
 			local hl_normal = util.extract_nvim_hl("Normal")
 
-            local test = {
-                bg = hl.brighten(hl_tabline.bg, 35),
-                fg = "NONE"
-            }
+			local hl_background = {
+				bg = hl.brighten(hl_tabline.bg, 22),
+				fg = "NONE",
+			}
+			local buffer_lighter = hl.brighten(hl_tabline.bg, 30)
+			local hl_col = util.extract_nvim_hl("@lsp.type.parameter")
 
 			local theme = {
-				fill = test,
+				fill = hl_background,
 				head = hl_tabline,
-				win = test,
+				win = hl_background,
 				tail = "TabLine",
 
 				current_tab = "TabLineSel",
 				tab = "TabLine",
 				current_buf = { fg = hl_normal.fg, bg = hl_normal.bg, style = "italic" },
-				buf = { fg = hl_tabline.fg, bg = hl_tabline.bg },
-				current = { fg = hl_normal.fg, bg = "NONE", style = "italic" },
+				buf = { fg = hl_tabline.fg, bg = buffer_lighter },
+				current = { fg = hl_col.fg, bg = hl_background.bg, style = "italic" },
 			}
 			local highlight = require("tabby.module.highlight")
 			local function ensure_hl_obj(hl)
@@ -175,5 +177,42 @@ return {
 				components = components,
 			})
 		end,
+	},
+	{
+		"caenrique/swap-buffers.nvim",
+		keys = {
+			{
+				"<leader>bh",
+				function()
+					require("swap-buffers").swap_buffers("h")
+				end,
+				desc = "Buffer Swap Left",
+			},
+			{
+				"<leader>bj",
+				function()
+					require("swap-buffers").swap_buffers("j")
+				end,
+				desc = "Buffer Swap Down",
+			},
+			{
+				"<leader>bk",
+				function()
+					require("swap-buffers").swap_buffers("k")
+				end,
+				desc = "Buffer Swap Top",
+			},
+			{
+				"<leader>bl",
+				function()
+					require("swap-buffers").swap_buffers("l")
+				end,
+				desc = "Buffer Swap Right",
+			},
+		},
+		opts = {
+			-- print(vim.bo.filetypes)
+			ignore_filetypes = { "neo-tree", "toggleterm", "Trouble" },
+		},
 	},
 }

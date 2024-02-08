@@ -200,6 +200,7 @@ return {
 			"jay-babu/mason-nvim-dap.nvim",
 			dependencies = {
 				"mason.nvim",
+                "telescope.nvim"
 			},
 			cmd = { "DapInstall", "DapUninstall" },
 			opts = {

@@ -52,9 +52,9 @@ return {
 	},
 
 	{
-		"rebelot/kanagawa.nvim",
+		-- "rebelot/kanagawa.nvim",
+		dir = "~/repos/kanagawa.nvim/",
 		priority = 1000,
-		-- cond = scheme == "kanagawa",
 		config = function()
 			require("kanagawa").setup({
 				colors = {
@@ -62,9 +62,12 @@ return {
 					-- theme = { dragon = { ui = { fg = "#EAE7D6" } }}
 				},
 				overrides = function(colors)
-					local cols = require("kanagawa.colors").setup()
+					local cols = require("kanagawa.colors").setup({
+						dimInactive = true,
+					})
 					local pal = colors.palette
 					local theme = cols.theme
+                    local br = require"ddob.highlights".brighten
 					return {
 						NormalFloat = { bg = "none" },
 						FloatBorder = { bg = "none" },
@@ -80,12 +83,36 @@ return {
 						PmenuSel = { fg = "NONE", bg = theme.ui.bg_p2 },
 						PmenuSbar = { bg = theme.ui.bg_m1 },
 						PmenuThumb = { bg = theme.ui.bg_p2 },
+
 						-- CmpItemAbbrDeprecated = { fg = theme.syn.comment, strikethrough = false },
+						WinSeparator = { fg = br(pal.dragonPink, -30) },
+
+						TreesitterContext = { fg = theme.ui.special, bg = br(theme.ui.bg_m1, 10)  },
+						TreesitterContextLineNumber = { bg = br(theme.ui.bg_gutter, -30) },
 
 						-- -- TODO: add nvim support: https://github.com/loctvl842/monokai-pro.nvim/blob/master/lua/monokai-pro/theme/plugins/neo-tree.lua
 						NeoTreeDirectoryIcon = { fg = pal.dragonAsh },
 						NeoTreeGitAdded = { fg = pal.dragonOrange },
 						NeoTreeDirectoryName = { fg = theme.ui.fg_dim },
+
+						NvimWindowSwitch = { bg = pal.dragonGreen, fg = theme.ui.bg_m3, bold = true },
+						NvimWindowSwitchNC = { link = "NvimWindowSwitch" },
+						WindowPickerStatusLine = { link = "NvimWindowSwitch" },
+						WindowPickerStatusLineNC = { link = "NvimWindowSwitch" },
+						WindowPickerWinBar = { link = "NvimWindowSwitch" },
+						WindowPickerWinBarNC = { link = "NvimWindowSwitch" },
+
+                        IlluminatedWordText = { link = "CursorLine" },
+                        IlluminatedWordRead = { link = "CursorLine" },
+                        IlluminatedWordWrite = { link = "CursorLine" },
+
+                        DiagnosticFloatingError = { link = "DiagnosticError" },
+                        DiagnosticFloatingWarn = { link = "DiagnosticWarn" },
+                        DiagnosticFloatingInfo = { link = "DiagnosticInfo" },
+                        DiagnosticFloatingHint = { link = "DiagnosticHint" },
+                        DiagnosticFloatingOk = { link = "DiagnosticOk" },
+                        -- TODO:
+                        -- ToggleTerm1FloatBorder = { link = "FloatBorder" },
 					}
 				end,
 			})
@@ -93,15 +120,8 @@ return {
                 " Clear deprecated highlights (had problems in C code with typedef)
                 hi! clear DiagnosticDeprecated
                 hi! clear NoiceCmdlineIcon
-                highlight link IlluminatedWordText CursorLine
-                highlight link IlluminatedWordRead CursorLine
-                highlight link IlluminatedWordWrite CursorLine
                 colorscheme kanagawa
-                " highlight DiagnosticSignHint guibg=NONE
-                " highlight DiagnosticSignWarn guibg=NONE
-                " highlight DiagnosticSignError guibg=NONE
             ]])
 		end,
 	},
 }
-

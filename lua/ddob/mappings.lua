@@ -17,10 +17,18 @@ map("t", "<C-k>", "<cmd>wincmd k<cr>", { desc = "Focus upper window" })
 map("t", "<C-l>", "<cmd>wincmd l<cr>", { desc = "Focus right window" })
 
 -- Resize
-map("n", "<S-Up>", "<cmd>resize +3<cr>", { desc = "Increase window height" })
-map("n", "<S-Down>", "<cmd>resize -3<cr>", { desc = "Decrease window height" })
-map("n", "<S-Left>", "<cmd>vertical resize -3<cr>", { desc = "Decrease window width" })
-map("n", "<S-Right>", "<cmd>vertical resize +3<cr>", { desc = "Increase window width" })
+map({ "n" }, "<S-Left>", function()
+	utils.change_width("left")
+end, { desc = "Increase Left" })
+map({ "n" }, "<S-Right>", function()
+	utils.change_width("right")
+end, { desc = "Increase Right" })
+map({ "n" }, "<S-Up>", function()
+	utils.change_width("up")
+end, { desc = "Increase Up" })
+map({ "n" }, "<S-Down>", function()
+	utils.change_width("down")
+end, { desc = "Increase Down" })
 
 -- Better up/down (deals with word wrap)
 map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
@@ -45,6 +53,10 @@ map("v", ">", ">gv", { desc = "Decrease indent" })
 -- cycle through buffers
 map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
 map("n", "L", "<cmd>bnext<cr>", { desc = "Next buffer" })
+map("n", "<leader>bm", ":tabnew %<cr>", { desc = "Buffer fullscreen" })
+map("n", "C", ":b#|bd#<cr>", { desc = "Close current buffer" })
+map("n", "D", ":bd<cr>", { desc = "Delete current buffer" })
+map("n", "+", "<C-w>=", { desc = "Equalize buffers" })
 
 -- Lazy left - right
 -- map("n", "H", "^", { desc = "Lazy left" })
@@ -52,27 +64,17 @@ map("n", "L", "<cmd>bnext<cr>", { desc = "Next buffer" })
 
 -- various
 map("n", "<leader>q", "<cmd>qa<CR>", { desc = "Quit all buffers" })
-map("n", "C", ":b#|bd#<cr>", { desc = "Close current buffer" })
-map("n", "D", ":bd<cr>", { desc = "Delete current buffer" })
 map("i", "<C-BS>", "<C-W>", { desc = "Remove word before", noremap = true })
 map("n", "<leader>w", "<cmd>silent write<cr>", { desc = "Save the current file" })
 
 -- TODO: Enable ft specific.
-map(
-    "n", "<leader>kq",
-    function()
-        utils.search_current_web("https://doc.qt.io/qt-6/search-results.html?q=")
-    end,
-    { desc = "Search in Qt docs", silent = true }
-)
+map("n", "<leader>kq", function()
+	utils.search_current_web("https://doc.qt.io/qt-6/search-results.html?q=")
+end, { desc = "Search in Qt docs", silent = true })
 
-map(
-    "n", "<leader>kr",
-    function()
-        utils.search_current_web("https://en.cppreference.com/mwiki/index.php?title=Special%%3ASearch&search=")
-    end,
-    { desc = "Search in CppReference docs", silent = true }
-)
+map("n", "<leader>kr", function()
+	utils.search_current_web("https://en.cppreference.com/mwiki/index.php?title=Special%%3ASearch&search=")
+end, { desc = "Search in CppReference docs", silent = true })
 
 -- Delete into blackhole register
 -- vim.keymap.set({ "n", "x" }, "x", '"_x')

@@ -13,6 +13,7 @@ vim.opt.rtp:prepend(lazypath)
 
 vim.cmd([[colorscheme retrobox]])
 
+local utils = require("ddob.utils")
 require("ddob.options")
 require("ddob.mappings")
 require("ddob.autocmd")
@@ -66,11 +67,11 @@ if vim.g.neovide == true then
 	vim.g.neovide_floating_z_height = 10
 	vim.g.neovide_light_angle_degrees = 45
 	vim.g.neovide_light_radius = 5
-    -- scroll anim
-    vim.g.neovide_scroll_animation_length = 0.3
+	-- scroll anim
+	vim.g.neovide_scroll_animation_length = 0.3
 
-    vim.g.neovide_unlink_border_highlights = true
-    vim.g.neovide_cursor_vfx_mode = "pixiedust"
+	vim.g.neovide_unlink_border_highlights = true
+	vim.g.neovide_cursor_vfx_mode = "pixiedust"
 
 	vim.api.nvim_set_keymap(
 		"n",
@@ -87,42 +88,10 @@ if vim.g.neovide == true then
 	vim.api.nvim_set_keymap("n", "<C-0>", ":lua vim.g.neovide_scale_factor = 1<CR>", { silent = true })
 end
 
--- Reset Terminal Background color to curren ttheme
-local handle = io.popen("tty")
-local tty = handle:read("*a")
-handle:close()
+vim.cmd([[
+    if has('nvim')
+        let $GIT_EDITOR = "nvr -cc tabedit --remote-wait +'set bufhidden=wipe'"
+    endif
+]])
 
-if tty:find("not a tty") then
-	return
-end
-
-local reset = function()
-	os.execute('printf "\\033]111\\007" > ' .. tty)
-end
-
-local update = function()
-	local normal = vim.api.nvim_get_hl_by_name("Normal", true)
-	local bg = normal["background"]
-	local fg = normal["foreground"]
-	if bg == nil then
-		return reset()
-	end
-
-	local bghex = string.format("#%06x", bg)
-	local fghex = string.format("#%06x", fg)
-
-	if os.getenv("TMUX") then
-		os.execute('printf "\\ePtmux;\\e\\033]11;' .. bghex .. '\\007\\e\\\\"')
-		os.execute('printf "\\ePtmux;\\e\\033]12;' .. fghex .. '\\007\\e\\\\"')
-	else
-		os.execute('printf "\\033]11;' .. bghex .. '\\007" > ' .. tty)
-		os.execute('printf "\\033]12;' .. fghex .. '\\007" > ' .. tty)
-	end
-end
-
-local setup = function()
-	vim.api.nvim_create_autocmd({ "ColorScheme", "UIEnter" }, { callback = update })
-	vim.api.nvim_create_autocmd({ "VimLeavePre" }, { callback = reset })
-end
-
-setup()
+utils.resetTerminalBg()

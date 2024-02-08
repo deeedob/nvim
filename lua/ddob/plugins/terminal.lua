@@ -18,12 +18,12 @@ return {
 			desc = "All Terminal Close",
 		},
 		{
-			"<leader>tS",
+			"<leader>te",
 			function()
 				local trim_spaces = true
 				require("toggleterm").send_lines_to_terminal("visual_selection", trim_spaces, { args = vim.v.count })
 			end,
-			desc = "Send to Terminal",
+			desc = "Terminal Execute",
 			mode = "v",
 		},
 		{ "<C-\\>", "<cmd>exe v:count1 . ToggleTerm<cr>", desc = "Terminal Toggle" },
@@ -46,7 +46,14 @@ return {
 			auto_scroll = false,
 			start_in_insert = true,
 			close_on_exit = true,
-			float_opts = { border = "curved" },
+			float_opts = { border = "single" },
+			highlights = {
+				NormalFloat = { link = "NormalFloat" },
+				FloatBorder = { link = "FloatBorder" },
+				WinBarActive = { link = "WinBar" },
+				WinBarInactive = { link = "WinBarNC" },
+				MatchParen = { link = "None" },
+			},
 		})
 	end,
 }
