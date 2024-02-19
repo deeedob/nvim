@@ -245,13 +245,13 @@ return {
 		table.insert(grep_args, "!**/.git/*")
 
 		local actions = require("telescope.actions")
-        require("telescope").load_extension("undo")
+		require("telescope").load_extension("undo")
 
 		return {
 			extensions = {
 				undo = {
-                    use_delta = true,
-                },
+					use_delta = true,
+				},
 			},
 			defaults = {
 				prompt_prefix = " ",

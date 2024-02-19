@@ -67,7 +67,7 @@ return {
 					})
 					local pal = colors.palette
 					local theme = cols.theme
-                    local br = require"ddob.highlights".brighten
+					local br = require("ddob.highlights").brighten
 					return {
 						NormalFloat = { bg = "none" },
 						FloatBorder = { bg = "none" },
@@ -87,7 +87,7 @@ return {
 						-- CmpItemAbbrDeprecated = { fg = theme.syn.comment, strikethrough = false },
 						WinSeparator = { fg = br(pal.dragonPink, -30) },
 
-						TreesitterContext = { fg = theme.ui.special, bg = br(theme.ui.bg_m1, 10)  },
+						TreesitterContext = { fg = theme.ui.special, bg = br(theme.ui.bg_m1, 10) },
 						TreesitterContextLineNumber = { bg = br(theme.ui.bg_gutter, -30) },
 
 						-- -- TODO: add nvim support: https://github.com/loctvl842/monokai-pro.nvim/blob/master/lua/monokai-pro/theme/plugins/neo-tree.lua
@@ -102,18 +102,18 @@ return {
 						WindowPickerWinBar = { link = "NvimWindowSwitch" },
 						WindowPickerWinBarNC = { link = "NvimWindowSwitch" },
 
-                        IlluminatedWordText = { link = "CursorLine" },
-                        IlluminatedWordRead = { link = "CursorLine" },
-                        IlluminatedWordWrite = { link = "CursorLine" },
+						IlluminatedWordText = { link = "CursorLine" },
+						IlluminatedWordRead = { link = "CursorLine" },
+						IlluminatedWordWrite = { link = "CursorLine" },
 
-                        DiagnosticFloatingError = { link = "DiagnosticError" },
-                        DiagnosticFloatingWarn = { link = "DiagnosticWarn" },
-                        DiagnosticFloatingInfo = { link = "DiagnosticInfo" },
-                        DiagnosticFloatingHint = { link = "DiagnosticHint" },
-                        DiagnosticFloatingOk = { link = "DiagnosticOk" },
-			CursorLineNr = { fg = br(pal.dragonRed, 20), bg = theme.ui.bg_gutter, bold = false },
-                        -- TODO:
-                        -- ToggleTerm1FloatBorder = { link = "FloatBorder" },
+						DiagnosticFloatingError = { link = "DiagnosticError" },
+						DiagnosticFloatingWarn = { link = "DiagnosticWarn" },
+						DiagnosticFloatingInfo = { link = "DiagnosticInfo" },
+						DiagnosticFloatingHint = { link = "DiagnosticHint" },
+						DiagnosticFloatingOk = { link = "DiagnosticOk" },
+						CursorLineNr = { fg = br(pal.dragonRed, 20), bg = theme.ui.bg_gutter, bold = false },
+						-- TODO:
+						-- ToggleTerm1FloatBorder = { link = "FloatBorder" },
 					}
 				end,
 			})

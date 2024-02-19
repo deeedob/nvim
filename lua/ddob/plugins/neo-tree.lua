@@ -65,16 +65,16 @@ return {
 				sources = {
 					{
 						source = "filesystem",
-                        display_name = "  "
+						display_name = "  ",
 					},
 					{
 						source = "buffers",
 						display_name = " 󰥛 ",
 					},
-                    {
-                        source = "document_symbols",
+					{
+						source = "document_symbols",
 						display_name = " 󱑻 ",
-                    },
+					},
 					{
 						source = "git_status",
 						display_name = " 󰊢 ",
@@ -146,7 +146,7 @@ return {
 						vim.fn.jobstart({ "xdg-open", path }, { detach = true })
 					end,
 					run_command = function(state)
-				local node = state.tree:get_node()
+						local node = state.tree:get_node()
 						local path = node:get_id()
 						vim.api.nvim_input(": " .. path .. "<Home>")
 					end,
@@ -246,13 +246,13 @@ return {
 	},
 	{
 		"s1n7ax/nvim-window-picker",
-        name = "window-picker",
-        event = "VeryLazy",
-        version = "2.*",
-        config = function()
-            require"window-picker".setup({
-                show_prompt = false
-            })
-        end
+		name = "window-picker",
+		event = "VeryLazy",
+		version = "2.*",
+		config = function()
+			require("window-picker").setup({
+				show_prompt = false,
+			})
+		end,
 	},
 }

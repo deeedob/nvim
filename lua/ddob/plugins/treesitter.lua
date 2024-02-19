@@ -25,13 +25,13 @@ return {
 					ensure_installed = {
 						"c",
 						"cpp",
-                        "rust",
+						"rust",
 						"lua",
 						"python",
 						"vimdoc",
 						"vim",
 						"bash",
-                        "regex",
+						"regex",
 						"markdown",
 						"markdown_inline",
 						"diff",
@@ -39,10 +39,10 @@ return {
 						"yaml",
 						"fish",
 						"proto",
-                        "qmldir",
-                        "qmljs",
-                        "ron",
-                        "toml",
+						"qmldir",
+						"qmljs",
+						"ron",
+						"toml",
 					},
 
 					-- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
@@ -73,7 +73,7 @@ return {
 							lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
 							keymaps = {
 								-- You can use the capture groups defined in textobjects.scm
-                                -- This complements 'keymaps.ini_selection'
+								-- This complements 'keymaps.ini_selection'
 								["aa"] = "@parameter.outer",
 								["ia"] = "@parameter.inner",
 								["af"] = "@function.outer",
@@ -120,49 +120,49 @@ return {
 	-- Show current AST-context on the top
 	{
 		"nvim-treesitter/nvim-treesitter-context",
-        lazy = false,
-        cmd = { "TSContextToggle" },
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter"
-        },
-        keys = {
-            {
-                "<leader>uC",
-                ":TSContextToggle<cr>",
-                desc = "Treesitter Context Toggle",
-            },
-        },
+		lazy = false,
+		cmd = { "TSContextToggle" },
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+		},
+		keys = {
+			{
+				"<leader>uC",
+				":TSContextToggle<cr>",
+				desc = "Treesitter Context Toggle",
+			},
+		},
 		init = function()
-            -- TODO: update
+			-- TODO: update
 			-- vim.cmd("highlight link TreesitterContext Comment")
 			-- vim.cmd("highlight link TreesitterContextLineNumber Comment")
 			-- vim.cmd("highlight link TreesitterContextSeparator Comment")
 			-- vim.cmd("highlight link TreesitterContextBottom Comment")
 		end,
-        opts = {
-            mode = "cursor",
-            max_lines = 3
-        },
+		opts = {
+			mode = "cursor",
+			max_lines = 3,
+		},
 	},
 
-    -- Highlight current scope
-    {
-        "folke/twilight.nvim",
-        cmd = { "Twilight" },
-        keys = {
-            {
-                "<leader>ut",
-                ":Twilight<cr>",
-                desc = "Twilight Toggle",
-            },
-        },
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter"
-        },
-        opts = {
-            context = 15
-        }
-    },
+	-- Highlight current scope
+	{
+		"folke/twilight.nvim",
+		cmd = { "Twilight" },
+		keys = {
+			{
+				"<leader>ut",
+				":Twilight<cr>",
+				desc = "Twilight Toggle",
+			},
+		},
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+		},
+		opts = {
+			context = 15,
+		},
+	},
 
 	-- Add Hyprland Parser
 	{

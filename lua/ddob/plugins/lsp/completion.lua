@@ -110,9 +110,9 @@ return {
 					expandable_indicator = true,
 					fields = { "kind", "abbr", "menu" },
 					format = require("lspkind").cmp_format({
-                        mode = "symbol",
+						mode = "symbol",
 						maxwidth = 50,
-                        ellipsis_char = '...',
+						ellipsis_char = "...",
 						before = function(entry, vim_item)
 							local m = vim_item.menu and vim_item.menu or ""
 							if #m > 20 then

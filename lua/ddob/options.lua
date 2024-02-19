@@ -78,12 +78,13 @@ opt.grepprg = "rg --vimgrep"
 opt.grepformat = "%f:%l:%c:%m"
 
 -- shortmess options
-vim.opt.shortmess = vim.opt.shortmess + {
-    c = true, -- Do not show completion messages in command line
-    F = true, -- Do not show file info when editing a file, in the command line
-    W = true, -- Do not show "written" in command line when writing
-    I = true, -- Do not show intro message when starting Vim
-}
+vim.opt.shortmess = vim.opt.shortmess
+	+ {
+		c = true, -- Do not show completion messages in command line
+		F = true, -- Do not show file info when editing a file, in the command line
+		W = true, -- Do not show "written" in command line when writing
+		I = true, -- Do not show intro message when starting Vim
+	}
 
 -- Enable autowrite
 opt.autowrite = true

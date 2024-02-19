@@ -108,7 +108,7 @@ return {
 				vim.cmd([[
                     " -- https://stackoverflow.com/questions/18774910/how-to-partially-link-highlighting-groups
                     " OMFG what is this ?! This here sets the highlighting group partially, so
-                    " that we can set an individial background. Kinda funky
+                    " that we can set an individual background. Kinda funky
                     exec 'hi ColumnDiagnosticError guibg=#2a2a37 ' . 'guifg=' . synIDattr(hlID('DiagnosticError'),'fg')
                     exec 'hi ColumnDiagnosticWarn guibg=#2a2a37 ' . 'guifg=' . synIDattr(hlID('DiagnosticWarn'),'fg')
                     exec 'hi ColumnDiagnosticInfo guibg=#2a2a37 ' . 'guifg=' . synIDattr(hlID('DiagnosticInfo'),'fg')

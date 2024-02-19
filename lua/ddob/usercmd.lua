@@ -8,15 +8,15 @@ end, { desc = "Toggle list characters" })
 
 vim.keymap.set("n", "<leader>uc", ":ToggleListChars<cr>", { desc = "List Chars Toggle", remap = true })
 
-vim.api.nvim_create_user_command('WipeWindowlessBufs', function ()
-  local bufinfos = vim.fn.getbufinfo({buflisted = true})
-  vim.tbl_map(function (bufinfo)
-    if bufinfo.changed == 0 and (not bufinfo.windows or #bufinfo.windows == 0) then
-      print(('Deleting buffer %d : %s'):format(bufinfo.bufnr, bufinfo.name))
-      vim.api.nvim_buf_delete(bufinfo.bufnr, {force = false, unload = false})
-    end
-  end, bufinfos)
-end, { desc = 'Wipeout all buffers not shown in a window'})
+vim.api.nvim_create_user_command("WipeWindowlessBufs", function()
+	local bufinfos = vim.fn.getbufinfo({ buflisted = true })
+	vim.tbl_map(function(bufinfo)
+		if bufinfo.changed == 0 and (not bufinfo.windows or #bufinfo.windows == 0) then
+			print(("Deleting buffer %d : %s"):format(bufinfo.bufnr, bufinfo.name))
+			vim.api.nvim_buf_delete(bufinfo.bufnr, { force = false, unload = false })
+		end
+	end, bufinfos)
+end, { desc = "Wipeout all buffers not shown in a window" })
 vim.keymap.set("n", "<leader>bo", ":WipeWindowlessBufs<cr>", { desc = "Other Buffs close", remap = true })
 
 vim.api.nvim_create_user_command("I", function(args)
@@ -54,5 +54,5 @@ end
 
 -- Show the table for @mod
 S = function(mod)
-    P(package.loaded[mod])
+	P(package.loaded[mod])
 end

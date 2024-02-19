@@ -39,7 +39,7 @@ return {
 					sh = { "shellharden", "shellcheck" },
 					rust = { "rustfmt" },
 
-                    ["*"] = { "codespell" },
+					["*"] = { "codespell" },
 					json = { "prettier" },
 					yaml = { "prettier" },
 					markdown = { "prettier" },
