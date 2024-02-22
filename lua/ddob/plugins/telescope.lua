@@ -1,6 +1,6 @@
 return {
 	"nvim-telescope/telescope.nvim",
-	version = false,
+    tag = "0.1.5",
 	cmd = "Telescope",
 	event = "VeryLazy",
 	dependencies = {

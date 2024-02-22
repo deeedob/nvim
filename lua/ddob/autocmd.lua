@@ -79,7 +79,7 @@ vim.filetype.add({
 	extension = {
 		rasi = "rasi",
 		qml = "qml",
-        qdoc = "qdoc"
+		qdoc = "qdoc",
 	},
 	pattern = {
 		[".*/waybar/config"] = "jsonc",

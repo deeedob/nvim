@@ -128,7 +128,7 @@ opt.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "help", "glob
 opt.undolevels = 10000
 
 -- Disable lsp logging
-vim.lsp.set_log_level("WARN")
+vim.lsp.set_log_level("OFF")
 
 -- Disable certain builtins
 g.loaded_netrw = 1

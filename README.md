@@ -9,5 +9,5 @@ My handcrafted and personalized nvim config that I use across all machines.
 Dependent packages:
 
 ```bash
-    yay -S --needed neovim-remote
+    yay -S --needed neovim-remote ripgrep fd tree-sitter
 ```

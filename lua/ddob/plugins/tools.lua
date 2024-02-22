@@ -109,6 +109,7 @@ return {
 	-- Buffer Management
 	{
 		"ThePrimeagen/harpoon",
+		-- branch = "harpoon2",
 		keys = {
 			{
 				"<leader>ha",
