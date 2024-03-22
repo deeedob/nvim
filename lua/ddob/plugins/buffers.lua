@@ -2,6 +2,14 @@ local hl = require("ddob.highlights")
 
 return {
 	{
+		"b0o/incline.nvim",
+		config = function()
+			require("incline").setup()
+		end,
+		-- Optional: Lazy load Incline
+		event = "VeryLazy",
+	},
+	{
 		"nanozuki/tabby.nvim",
 		event = "VimEnter",
 		dependencies = {
