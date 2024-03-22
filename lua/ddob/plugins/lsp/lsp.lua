@@ -32,10 +32,6 @@ return {
 	{
 		"williamboman/mason-lspconfig.nvim",
 		event = "VeryLazy",
-		opts = {
-			ensure_installed = servers,
-			automatic_installation = true,
-		},
 	},
 
 	-- Diagnostic List
@@ -69,6 +65,7 @@ return {
 		"neovim/nvim-lspconfig",
 		lazy = false,
 		config = function()
+			local dconf = require("ddob.config")
 			require("neodev").setup({
 				-- library = { plugins = { "nvim-dap-ui" }, types = true },
 			})
@@ -79,7 +76,6 @@ return {
 				ensure_installed = servers,
 				automatic_installation = true,
 			})
-			local dconf = require("ddob.config")
 
 			-- Diagnostics config
 			vim.diagnostic.config({
@@ -107,7 +103,7 @@ return {
 			else -- Highlight with icons in sign column
 				vim.cmd([[
                     " -- https://stackoverflow.com/questions/18774910/how-to-partially-link-highlighting-groups
-                    " OMFG what is this ?! This here sets the highlighting group partially, so
+                    " This here sets the highlighting group partially, so
                     " that we can set an individual background. Kinda funky
                     exec 'hi ColumnDiagnosticError guibg=#2a2a37 ' . 'guifg=' . synIDattr(hlID('DiagnosticError'),'fg')
                     exec 'hi ColumnDiagnosticWarn guibg=#2a2a37 ' . 'guifg=' . synIDattr(hlID('DiagnosticWarn'),'fg')
@@ -137,10 +133,10 @@ return {
 			local on_attach_default = function(client, bufnr)
 				-- LSP-related key mappings
 				-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#serverCapabilities
-				if client.server_capabilities.hoverProvider then
+				if client.server_capabilities.hoverProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover Docs", buffer = bufnr })
 				end
-				if client.server_capabilities.codeActionProvider then
+				if client.server_capabilities.codeActionProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"<leader>la",
@@ -148,19 +144,10 @@ return {
 						{ desc = "Code [A]ctions", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.renameProvider then
+				if client.server_capabilities.renameProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename, { desc = "[R]ename", buffer = bufnr })
 				end
-				-- TODO?
-				-- if client.server_capabilities.diagnosticProvider then
-				vim.keymap.set(
-					"n",
-					"<leader>ld",
-					vim.diagnostic.open_float,
-					{ desc = "[D]iagnostic Line", buffer = bufnr }
-				)
-				-- end
-				if client.server_capabilities.documentSymbolProvider then
+				if client.server_capabilities.documentSymbolProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"<leader>lD",
@@ -168,7 +155,7 @@ return {
 						{ desc = "[D]ocument Symbols", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.typeDefinitionProvider then
+				if client.server_capabilities.typeDefinitionProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"<leader>lt",
@@ -176,7 +163,7 @@ return {
 						{ desc = "[T]ype definition", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.definitionProvider then
+				if client.server_capabilities.definitionProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"gd",
@@ -196,7 +183,7 @@ return {
 						{ desc = "Goto [D]efinition Horizontal", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.implementationProvider then
+				if client.server_capabilities.implementationProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"gi",
@@ -204,10 +191,10 @@ return {
 						{ desc = "Goto [I]mplementations", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.declarationProvider then
+				if client.server_capabilities.declarationProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Goto [D]eclaration", buffer = bufnr })
 				end
-				if client.server_capabilities.signatureHelpProvider then
+				if client.server_capabilities.signatureHelpProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"<C-s>",
@@ -215,7 +202,7 @@ return {
 						{ desc = "Signature Help", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.referencesProvider then
+				if client.server_capabilities.referencesProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"gr",
@@ -223,7 +210,7 @@ return {
 						{ desc = "Goto [R]eferences", buffer = bufnr }
 					)
 				end
-				if client.server_capabilities.callHierarchyProvider then
+				if client.server_capabilities.callHierarchyProvider or dconf.lsp.skip_capability_check then
 					vim.keymap.set(
 						"n",
 						"<leader>lci",
@@ -237,22 +224,32 @@ return {
 						{ desc = "[O]outgoing Calls", buffer = bufnr }
 					)
 				end
-				if dconf.lsp.hover_diagnostic then
-					vim.api.nvim_create_autocmd("CursorHold", {
-						group = vim.api.nvim_create_augroup("ddob_diagnostic_hover", { clear = true }),
-						buffer = bufnr,
-						callback = function()
-							local opts = {
-								focusable = false,
-								close_events = { "BufLeave", "CursorMoved", "InsertEnter", "FocusLost" },
-								border = "rounded",
-								source = "always",
-								prefix = " ",
-								scope = "line",
-							}
-							vim.diagnostic.open_float(nil, opts)
-						end,
-					})
+				if client.server_capabilities.diagnosticProvider or dconf.lsp.skip_capability_check then
+					vim.keymap.set(
+						"n",
+						"<leader>ld",
+						vim.diagnostic.open_float,
+						{ desc = "[D]iagnostic Line", buffer = bufnr }
+					)
+					vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Diagnostic Prev", buffer = bufnr })
+					vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Diagnostic Next", buffer = bufnr })
+					if dconf.lsp.hover_diagnostic then
+						vim.api.nvim_create_autocmd("CursorHold", {
+							group = vim.api.nvim_create_augroup("ddob_diagnostic_hover", { clear = true }),
+							buffer = bufnr,
+							callback = function()
+								local opts = {
+									focusable = false,
+									close_events = { "BufLeave", "CursorMoved", "InsertEnter", "FocusLost" },
+									border = "rounded",
+									source = "always",
+									prefix = " ",
+									scope = "line",
+								}
+								vim.diagnostic.open_float(nil, opts)
+							end,
+						})
+					end
 				end
 			end
 
@@ -293,7 +290,7 @@ return {
 							"--function-arg-placeholders",
 							"--cross-file-rename",
 							"--enable-config",
-							"-j=2",
+							"-j=4",
 						},
 						init_options = {
 							usePlaceholders = true,
@@ -350,20 +347,17 @@ return {
 				end,
 			})
 
-			local util = require("lspconfig.util")
 			local function qml_root_dir()
-				local has_cmake, cmake = pcall(require, "cmake-tools")
-				if has_cmake and cmake.is_cmake_project() then
-					return cmake.get_build_directory().filename
-				else
-					return vim.fn.getcwd()
+				if package.loaded["cmake-tools"] then
+					return require("cmake-tools").get_build_directory().filename
 				end
+				return vim.fn.getcwd()
 			end
 			require("lspconfig").qmlls.setup({
 				cmd = { "qmlls", "-b", qml_root_dir() },
 				filetypes = { "qml" },
-				-- root_dir = util.root_pattern("CMakeLists.txt", "Main.qml"),
 				root_dir = function(fname)
+					local util = require("lspconfig.util")
 					return util.find_git_ancestor(fname)
 				end,
 				single_file_support = true,

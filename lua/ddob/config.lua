@@ -1,8 +1,12 @@
 return {
-	colorscheme = "kanagawa",
+	colorscheme = {
+        name = "kanagawa",
+        enable_all = false
+    },
 	lsp = {
 		icon_sign = false, -- uses colored num column if false
 		hover_diagnostic = true,
+        skip_capability_check = true,
 	},
 	colors = {
 		cmake_line = "#928374",

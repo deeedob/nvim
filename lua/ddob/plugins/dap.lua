@@ -1,6 +1,7 @@
 return {
 	"mfussenegger/nvim-dap",
-	event = "VeryLazy",
+	-- event = "VeryLazy",
+    lazy = true,
 	dependencies = {
 		-- fancy UI for the debugger
 		{
@@ -9,6 +10,9 @@ return {
             keys = {
                 { "<leader>du", function() require("dapui").toggle({}) end, desc = "Dap UI" },
                 { "<leader>de", function() require("dapui").eval() end,     desc = "Eval",  mode = { "n", "v" } },
+            },
+            dependencies = {
+                "nvim-neotest/nvim-nio"
             },
 			opts = {
 				expand_lines = true,

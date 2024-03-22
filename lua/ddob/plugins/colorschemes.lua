@@ -1,7 +1,10 @@
+local scheme = require("ddob.config").colorscheme
+
 return {
 	{
 		"sainnhe/everforest",
-		priority = 400,
+        cond = scheme.name == "everforest" or scheme.enable_all,
+        priority = 1000,
 		config = function()
 			vim.g.everforest_background = "hard"
 		end,
@@ -9,13 +12,15 @@ return {
 
 	{
 		"rose-pine/neovim",
-		priority = 500,
+        cond = scheme.name == "rose-pine" or scheme.enable_all,
+        priority = 1000,
 		name = "rose-pine",
 	},
 
 	{
 		"sainnhe/gruvbox-material",
-		priority = 600,
+        cond = scheme.name == "gruvbox-material" or scheme.enable_all,
+        priority = 1000,
 		config = function()
 			vim.cmd([[
                 set background=dark
@@ -38,25 +43,31 @@ return {
 
 	{
 		"savq/melange-nvim",
-		priority = 700,
+        cond = scheme.name == "melange" or scheme.enable_all,
+        priority = 1000,
 	},
 
 	{
 		"catppuccin/nvim",
-		priority = 800,
+        cond = scheme.name == "catppuccin" or scheme.enable_all,
+        priority = 1000,
 	},
 
 	{
 		"folke/tokyonight.nvim",
-		priority = 900,
+        cond = scheme.name == "tokyonight" or scheme.enable_all,
+        priority = 1000,
 	},
 
 	{
 		-- "rebelot/kanagawa.nvim",
 		dir = "~/repos/kanagawa.nvim/",
-		priority = 1000,
+        cond = scheme.name == "kanagawa" or scheme.enable_all,
+        priority = 1000,
 		config = function()
 			require("kanagawa").setup({
+                compile = true,
+                dimInactive = true,
 				colors = {
 					-- theme = { all = { ui = { bg_gutter = "none" }} }
 					-- theme = { dragon = { ui = { fg = "#EAE7D6" } }}
@@ -65,7 +76,7 @@ return {
 					local cols = require("kanagawa.colors").setup({
 						dimInactive = true,
 					})
-					local pal = colors.palette
+					local pal = cols.palette
 					local theme = cols.theme
 					local br = require("ddob.highlights").brighten
 					return {
@@ -112,6 +123,8 @@ return {
 						DiagnosticFloatingHint = { link = "DiagnosticHint" },
 						DiagnosticFloatingOk = { link = "DiagnosticOk" },
 						CursorLineNr = { fg = br(pal.dragonRed, 20), bg = theme.ui.bg_gutter, bold = false },
+                        YankyYanked = { bg = pal.oniViolet, fg = theme.ui.fg_reverse },
+                        YankyPut = { bg = pal.oniViolet, fg = theme.ui.fg_reverse },
 						-- TODO:
 						-- ToggleTerm1FloatBorder = { link = "FloatBorder" },
 					}

@@ -3,7 +3,12 @@ return {
 		"nvim-lualine/lualine.nvim",
 		event = "VeryLazy",
 		opts = function()
-			local cmake = require("cmake-tools")
+            local cmake = nil
+            if package.loaded["cmake-tools"] then
+                cmake = require("cmake-tools")
+            end
+
+            -- local cmake = require("cmake-tools")
 			local icons = require("wayn.config").icons
 			local col = require("wayn.config").colors.cmake_line
 			local conditions = {
@@ -35,10 +40,12 @@ return {
 						-- },
 						{
 							function()
+                                if not cmake then return "" end
 								local b_target = cmake.get_build_target()
 								return (b_target and b_target or "X")
 							end,
 							cond = function()
+                                if not cmake then return "" end
 								return conditions.min_window_width(hide_cmake) and cmake.is_cmake_project()
 							end,
 							icon = icons.cmake.Gear,
@@ -53,11 +60,13 @@ return {
 						},
 						{
 							function()
+                                if not cmake then return "" end
 								local l_target = cmake.get_launch_target()
 								return (l_target and l_target or "X")
 							end,
 							icon = icons.cmake.Run,
 							cond = function()
+                                if not cmake then return "" end
 								return conditions.min_window_width(hide_cmake) and cmake.is_cmake_project()
 							end,
 							color = { fg = col },
@@ -80,11 +89,13 @@ return {
 					lualine_x = {
 						{
 							function()
+                                if not cmake then return "" end
 								local kit = cmake.get_kit()
 								return (kit and kit or "X")
 							end,
 							icon = icons.cmake.Arch,
 							cond = function()
+                                if not cmake then return false end
 								return conditions.min_window_width(hide_cmake)
 									and cmake.is_cmake_project()
 									and not cmake.has_cmake_preset()
@@ -100,11 +111,13 @@ return {
 						},
 						{
 							function()
+                                if not cmake then return "" end
 								local c_preset = cmake.get_configure_preset()
 								return (c_preset and c_preset or "X")
 							end,
 							icon = icons.cmake.Build,
 							cond = function()
+                                if not cmake then return "" end
 								return conditions.min_window_width(hide_cmake)
 									and cmake.is_cmake_project()
 									and cmake.has_cmake_preset()
@@ -120,11 +133,13 @@ return {
 						},
 						{
 							function()
+                                if not cmake then return "" end
 								local type = cmake.get_build_type()
 								return " " .. (type and type or "")
 							end,
 							icon = icons.cmake.Build,
 							cond = function()
+                                if not cmake then return false end
 								return conditions.min_window_width(hide_cmake)
 									and cmake.is_cmake_project()
 									and not cmake.has_cmake_preset()
@@ -140,10 +155,12 @@ return {
 						},
 						{
 							function()
+                                if not cmake then return "" end
 								local b_preset = cmake.get_build_preset()
 								return (b_preset and b_preset or "X")
 							end,
 							cond = function()
+                                if not cmake then return false end
 								return conditions.min_window_width(hide_cmake)
 									and cmake.is_cmake_project()
 									and cmake.has_cmake_preset()

@@ -123,6 +123,7 @@ return {
 	},
 	{
 		"tpope/vim-fugitive",
+        -- TODO: add cmds
 	},
     {
         "sindrets/diffview.nvim",
