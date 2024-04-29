@@ -51,6 +51,9 @@ return {
 					highlight = {
 						enable = true,
 						disable = function(lang, buf)
+							if lang == "cpp" or lang == "markdown" then
+								return true
+							end
 							local max_filesize = 150 * 1024 -- 150 KB
 							local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
 							if ok and stats and stats.size > max_filesize then
@@ -162,29 +165,5 @@ return {
 		opts = {
 			context = 15,
 		},
-	},
-
-	-- Add Hyprland Parser
-	{
-		"luckasRanarison/tree-sitter-hypr",
-		enabled = function()
-			return have("hypr")
-		end,
-		event = "BufRead */hypr/*.conf",
-		build = ":TSUpdate hypr",
-		config = function()
-			-- Fix ft detection for hyprland
-			vim.filetype.add({
-				pattern = { [".*/hypr/.*%.conf"] = "hypr" },
-			})
-			require("nvim-treesitter.parsers").get_parser_configs().hypr = {
-				install_info = {
-					url = "https://github.com/luckasRanarison/tree-sitter-hypr",
-					files = { "src/parser.c" },
-					branch = "master",
-				},
-				filetype = "hypr",
-			}
-		end,
 	},
 }

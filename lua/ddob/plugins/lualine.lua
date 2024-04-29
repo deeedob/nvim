@@ -231,7 +231,7 @@ return {
 						{ "location" },
 					},
 				},
-				extensions = { "toggleterm", "lazy", "neo-tree" },
+                -- extensions = { "toggleterm", "fugitive", "nvim-dap-ui", "trouble", "lazy" }
 			}
 		end,
 	},

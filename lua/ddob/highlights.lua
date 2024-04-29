@@ -41,12 +41,11 @@ local inactive = {
 	fg = tabline.fg,
 }
 
--- vim.api.nvim_set_hl(0, "DiagnosticDeprecated", {})
-
 vim.api.nvim_set_hl(0, "NeoTreeTabInactive", inactive)
 vim.api.nvim_set_hl(0, "NeoTreeTabActive", active)
 vim.api.nvim_set_hl(0, "NeoTreeTabSeparatorInactive", inactive)
 vim.api.nvim_set_hl(0, "NeoTreeTabSeparatorActive", active)
+
 
 -- vim.api.nvim_set_hl(0, "WindowPickerStatusLine", inactive)
 -- vim.api.nvim_set_hl(0, "WindowPickerStatusLineNC", inactive)

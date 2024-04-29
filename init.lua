@@ -20,6 +20,21 @@ require("ddob.autocmd")
 require("ddob.usercmd")
 require("ddob.highlights")
 
+-- Add (exotic) filetypes
+vim.filetype.add({
+	extension = {
+		rasi = "rasi",
+		qml = "qml",
+		qdoc = "qdoc",
+	},
+	pattern = {
+		[".*/waybar/config"] = "jsonc",
+		[".*/mako/config"] = "dosini",
+		[".*/kitty/*.conf"] = "bash",
+        [".*/hypr/.*%.conf"] = "hyprlang"
+	},
+})
+
 -- Load all plugins/*.lua
 require("lazy").setup({
 	spec = {
@@ -95,3 +110,6 @@ vim.cmd([[
 ]])
 
 utils.resetTerminalBg()
+
+-- Avoid ugly strikethrough
+vim.api.nvim_set_hl(0, "DiagnosticDeprecated", {})

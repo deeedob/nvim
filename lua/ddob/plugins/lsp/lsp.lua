@@ -6,8 +6,8 @@ local servers = {
 	"bashls",
 	"marksman",
 	"rust_analyzer",
-	-- "json-lsp"
-	--"bufls",
+	"jsonls",
+	"buf",
 }
 
 return {
@@ -290,6 +290,7 @@ return {
 							"--function-arg-placeholders",
 							"--cross-file-rename",
 							"--enable-config",
+                            "--query-driver=/usr/bin/clang++",
 							"-j=4",
 						},
 						init_options = {

@@ -1,7 +1,7 @@
 return {
 	colorscheme = {
         name = "kanagawa",
-        enable_all = false
+        enable_all = true
     },
 	lsp = {
 		icon_sign = false, -- uses colored num column if false

@@ -131,8 +131,6 @@ return {
 				end,
 			})
 			vim.cmd([[
-                " Clear deprecated highlights (had problems in C code with typedef)
-                hi! clear DiagnosticDeprecated
                 hi! clear NoiceCmdlineIcon
                 colorscheme kanagawa
             ]])

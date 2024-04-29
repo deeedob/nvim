@@ -1,11 +1,15 @@
 return {
 	"nvim-telescope/telescope.nvim",
-    tag = "0.1.5",
+    -- git_bcommit_range missing?
+    -- https://github.com/nvim-telescope/telescope.nvim/issues/3080
+    -- branch = "0.1.x",
+    branch = "master",
 	cmd = "Telescope",
 	event = "VeryLazy",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"debugloop/telescope-undo.nvim",
+        "aaronhallaert/advanced-git-search.nvim"
 	},
 	keys = {
 		{

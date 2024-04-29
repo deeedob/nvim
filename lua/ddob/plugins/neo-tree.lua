@@ -53,13 +53,22 @@ return {
 			open_files_do_not_replace_types = { "terminal", "Trouble", "trouble", "qf", "Outline", "edgy" },
 			enable_git_status = true,
 			enable_diagnostics = false,
-			enable_normal_mode_for_inputs = false,
 			git_status_async_options = {
 				batch_size = 1000,
 				batch_delay = 10,
 				max_lines = 10000,
 			},
-
+            event_handlers = {
+                {
+                    event = "neo_tree_popup_input_ready",
+                    handler = function()
+                        local status, plugin = pcall(require, 'cmp')
+                        if status then
+                            plugin.setup.buffer { enabled = false }
+                        end
+                    end,
+                }
+            },
 			source_selector = {
 				winbar = true,
 				sources = {

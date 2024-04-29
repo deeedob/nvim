@@ -67,7 +67,7 @@ return {
 					opts = {
 						direction = "horizontal",
 						auto_scroll = false,
-						close_on_exit = true,
+						close_on_exit = false,
 					},
 				},
 				cmake_runner = {
