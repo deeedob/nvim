@@ -9,7 +9,6 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"debugloop/telescope-undo.nvim",
-        "aaronhallaert/advanced-git-search.nvim"
 	},
 	keys = {
 		{
