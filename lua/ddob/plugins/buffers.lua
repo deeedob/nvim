@@ -4,7 +4,33 @@ return {
 	{
 		"b0o/incline.nvim",
 		config = function()
-			require("incline").setup()
+            local hlbg = vim.api.nvim_get_hl(0, { name = "Pmenu", create = false})
+            local hlfg = vim.api.nvim_get_hl(0, { name = "PreProc", create = false})
+            local hlnorm = vim.api.nvim_get_hl(0, { name = "Normal", create = false})
+
+            local col_bg_normal = hl.brighten(hl.colToHexString(hlnorm.bg), -10)
+            local col_fg = hl.colToHexString(hlfg.fg)
+            local col_bg = hl.colToHexString(hlbg.bg)
+
+			require("incline").setup({
+				window = {
+					padding = 0,
+					margin = { horizontal = 0, vertical = 0 },
+				},
+				render = function(props)
+					local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ":t")
+					if filename == "" then
+						filename = "[No Name]"
+					end
+					local modified = vim.bo[props.buf].modified
+					local res = {
+						{ " " .. filename, gui = modified and "strikethrough" or "italic" },
+						guibg = props.focused and col_bg or col_bg_normal,
+						guifg = col_fg,
+					}
+					return res
+				end,
+			})
 		end,
 		-- Optional: Lazy load Incline
 		event = "VeryLazy",
