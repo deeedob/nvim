@@ -28,6 +28,10 @@ function M.highlight(group, color)
 	vim.cmd(hl)
 end
 
+function M.colToHexString(color)
+    return "#" .. string.format("%06x", color)
+end
+
 local tabline = vim.api.nvim_get_hl(0, { name = "TabLine" })
 local tabline_fill = vim.api.nvim_get_hl(0, { name = "TabLineFill" })
 
