@@ -1,7 +1,7 @@
 local utils = require("ddob.utils")
 local map = vim.keymap.set
 
-map("t", "<A-j>", "<c-\\><c-n>", { desc = "Enter normal mode" })
+map("t", "<Esc><Esc>", "<c-\\><c-n>", { desc = "Enter normal mode" })
 map("i", "jk", "<ESC>", { desc = "Enter normal mode" })
 
 -- Window navigation

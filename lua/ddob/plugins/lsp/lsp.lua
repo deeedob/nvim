@@ -7,7 +7,7 @@ local servers = {
 	"marksman",
 	"rust_analyzer",
 	"jsonls",
-	"buf",
+	-- "buf",
 }
 
 return {
@@ -172,14 +172,18 @@ return {
 					)
 					vim.keymap.set(
 						"n",
-						"gdv",
-						":vsplit | lua vim.lsp.buf.definition()<CR>",
+						"<leader>lv",
+                        function()
+						    require("telescope.builtin").lsp_definitions({jump_type = "vsplit"})
+                        end,
 						{ desc = "Goto [D]efinition Vertical", buffer = bufnr }
 					)
 					vim.keymap.set(
 						"n",
-						"gdh",
-						":belowright split | lua vim.lsp.buf.definition()<CR>",
+						"<leader>lh",
+                        function()
+						    require("telescope.builtin").lsp_definitions({jump_type = "split"})
+                        end,
 						{ desc = "Goto [D]efinition Horizontal", buffer = bufnr }
 					)
 				end

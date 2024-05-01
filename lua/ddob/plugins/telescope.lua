@@ -1,9 +1,9 @@
 return {
 	"nvim-telescope/telescope.nvim",
-    -- git_bcommit_range missing?
-    -- https://github.com/nvim-telescope/telescope.nvim/issues/3080
-    -- branch = "0.1.x",
-    branch = "master",
+	-- git_bcommit_range missing?
+	-- https://github.com/nvim-telescope/telescope.nvim/issues/3080
+	-- branch = "0.1.x",
+	branch = "master",
 	cmd = "Telescope",
 	event = "VeryLazy",
 	dependencies = {
@@ -119,9 +119,12 @@ return {
 		{
 			"<leader>fc",
 			function()
-				return require("telescope.builtin").commands()
+				return require("telescope.builtin").git_files({
+					prompt_title = "< Nvim >",
+					cwd = "~/.config/nvim/",
+				})
 			end,
-			desc = "commands",
+			desc = "Nvim Config Files",
 		},
 		{
 			"<leader>fC",
@@ -257,7 +260,7 @@ return {
 				},
 			},
 			defaults = {
-				prompt_prefix = " ",
+				prompt_prefix = "  ",
 				selection_caret = "> ",
 				mappings = {
 					n = { ["q"] = actions.close },
