@@ -113,8 +113,8 @@ return {
 		"kdheepak/lazygit.nvim",
 		cmd = "LazyGit",
 		keys = {
-			{ "<leader>gg", ":LazyGit<cr>", "LazyGit", { desc = "Open Lazy Git" } },
-			{ "<leader>gf", ":LazyGitFilterCurrentFile<cr>", "LazyGit", { desc = "Lazy Git Current File" } },
+			{ "<leader>gG", ":LazyGit<cr>", desc = "LazyGit" },
+			{ "<leader>gF", ":LazyGitFilterCurrentFile<cr>", desc = "LazyGit Current" },
 		},
 		-- optional for floating window border decoration
 		dependencies = {
@@ -123,7 +123,10 @@ return {
 	},
 	{
 		"tpope/vim-fugitive",
-        -- TODO: add cmds
+        cmd = "G",
+		keys = {
+			{ "<leader>gf", ":vertical G<cr>", desc = "Fugitive" },
+		},
 	},
     {
         "sindrets/diffview.nvim",

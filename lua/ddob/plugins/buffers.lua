@@ -4,13 +4,13 @@ return {
 	{
 		"b0o/incline.nvim",
 		config = function()
-            local hlbg = vim.api.nvim_get_hl(0, { name = "Pmenu", create = false})
-            local hlfg = vim.api.nvim_get_hl(0, { name = "PreProc", create = false})
-            local hlnorm = vim.api.nvim_get_hl(0, { name = "Normal", create = false})
+			local hlbg = vim.api.nvim_get_hl(0, { name = "Pmenu", create = false })
+			local hlfg = vim.api.nvim_get_hl(0, { name = "PreProc", create = false })
+			local hlnorm = vim.api.nvim_get_hl(0, { name = "Normal", create = false })
 
-            local col_bg_normal = hl.brighten(hl.colToHexString(hlnorm.bg), -10)
-            local col_fg = hl.colToHexString(hlfg.fg)
-            local col_bg = hl.colToHexString(hlbg.bg)
+			local col_bg_normal = hl.brighten(hl.colToHexString(hlnorm.bg), -10)
+			local col_fg = hl.colToHexString(hlfg.fg)
+			local col_bg = hl.colToHexString(hlbg.bg)
 
 			require("incline").setup({
 				window = {
@@ -81,6 +81,8 @@ return {
 				current = { fg = hl_col.fg, bg = hl_background.bg, style = "italic" },
 			}
 			local highlight = require("tabby.module.highlight")
+			local devicons = require("nvim-web-devicons")
+
 			local function ensure_hl_obj(hl)
 				if type(hl) == "string" then
 					return highlight.extract(hl)
@@ -175,7 +177,15 @@ return {
 						if bufid == cur_bufid then
 							hl = theme.current_buf
 						end
-						-- local buf_name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufid), ":t")
+                        local fname = vim.api.nvim_buf_get_name(bufid)
+						local filename = vim.fn.fnamemodify(fname, ":t")
+						local ext = vim.fn.fnamemodify(fname, ":e")
+						local icon, icon_hl = devicons.get_icon(filename, ext)
+                        if not icon then
+                            icon = ""
+                            icon_hl = hl
+                        end
+
 						table.insert(coms, {
 							type = "text",
 							text = sep("", hl, theme.fill),
@@ -183,8 +193,8 @@ return {
 						table.insert(coms, {
 							type = "text",
 							text = {
-								" " .. bufid .. " ",
-								hl = hl,
+								" " .. icon .. " ",
+								hl = icon_hl,
 							},
 						})
 						table.insert(coms, {

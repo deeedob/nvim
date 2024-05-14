@@ -11,6 +11,8 @@ opt.cursorlineopt = "number"
 opt.cursorcolumn = false
 opt.guicursor = "n-v-c-sm:block,i-ci-ve:ver30-iCursor-blinkwait200-blinkon800,r-cr-o:hor20"
 
+opt.inccommand = "split"
+
 -- Pane splitting
 opt.splitright = true
 opt.splitbelow = true
