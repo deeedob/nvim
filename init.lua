@@ -1,20 +1,26 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
-vim.cmd([[colorscheme retrobox]]);
+vim.o.termguicolors = true
+vim.o.guicursor =
+     "n-v-c-sm:block-Cursor,"
+  .. "i-ci-ve:ver30-blinkwait200-blinkon800,"
+  .. "r-cr-o:hor20"
+  -- .. "a:Cursor"
 
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+vim.cmd [[colorscheme retrobox]]
+
+local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
+  vim.fn.system {
     "git",
     "clone",
     "--filter=blob:none",
     "https://github.com/folke/lazy.nvim.git",
     "--branch=stable", -- latest stable release
     lazypath,
-  })
+  }
 end
-
 
 vim.opt.rtp:prepend(lazypath)
 

@@ -1,7 +1,7 @@
 return {
   {
     "nvim-telescope/telescope.nvim",
-    -- git_bcommit_range missing?
+    -- git_bcommit_range missing
     -- https://github.com/nvim-telescope/telescope.nvim/issues/3080
     -- branch = "0.1.x",
     branch = "master",

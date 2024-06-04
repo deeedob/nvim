@@ -6,8 +6,7 @@ return {
       require("oil").setup {
         columns = { "icon" },
         keymaps = {
-          ["<C-h>"] = false,
-          ["<M-h>"] = "actions.select_split",
+          ["<C-h>"] = "actions.select_split",
         },
         view_options = {
           show_hidden = true,
@@ -23,7 +22,7 @@ return {
       )
 
       -- Open parent directory in floating window
-      vim.keymap.set("n", "<space>-", require("oil").toggle_float)
+      vim.keymap.set("n", "<leader>-", require("oil").toggle_float)
     end,
   },
 }

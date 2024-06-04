@@ -2,16 +2,16 @@ local data = assert(vim.fn.stdpath "data") --[[@as string]]
 
 require("telescope").setup {
   defaults = {
-    initial_mode = "insert"
+    initial_mode = "insert",
+    history = {
+      path = vim.fs.joinpath(data, "telescope_history.sqlite3"),
+      limit = 100,
+    },
   },
   extensions = {
     wrap_results = true,
     undo = { use_delta = true },
     fzf = {},
-    history = {
-      path = vim.fs.joinpath(data, "telescope_history.sqlite3"),
-      limit = 100,
-    },
     ["ui-select"] = {
       require("telescope.themes").get_dropdown {},
     },
@@ -98,6 +98,10 @@ vim.keymap.set(
 )
 
 vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "[h]elp" })
+vim.keymap.set("n", "<leader>fH", function()
+  return builtin.highlights {}
+end, { desc = "[H]ighlights" })
+
 vim.keymap.set("n", "<leader>fm", builtin.man_pages, { desc = "[m]an" })
 vim.keymap.set("n", "<leader>fk", builtin.keymaps, { desc = "[k]eymaps" })
 
@@ -105,7 +109,9 @@ vim.keymap.set("n", "<leader>fc", function()
   return builtin.find_files { cwd = vim.fn.stdpath "config" }
 end, { desc = "[c]onfig (user)" })
 vim.keymap.set("n", "<leader>fC", function()
-  return builtin.find_files { cwd = vim.fs.joinpath(vim.fn.stdpath "data", "lazy") }
+  return builtin.find_files {
+    cwd = vim.fs.joinpath(vim.fn.stdpath "data", "lazy"),
+  }
 end, { desc = "[c]onfig (lazy)" })
 
 vim.keymap.set("n", "<leader>fd", function()
@@ -116,30 +122,30 @@ vim.keymap.set("n", "<leader>fD", function()
 end, { desc = "[d]iagnostic (project)" })
 
 -- Git bindings
+
 vim.keymap.set("n", "<leader>gc", function()
   return builtin.git_commits()
-end, { desc = "find [c]ommits"})
+end, { desc = "find [c]ommits" })
 
 vim.keymap.set("n", "<leader>gC", function()
   return builtin.git_bcommits()
-end, { desc = "find [C]ommits (current)"})
+end, { desc = "find [C]ommits (current)" })
 
 vim.keymap.set("v", "<leader>gc", function()
-  local utils = require("next.utils")
+  local utils = require "ddob.utils"
   local b, e = utils.get_visual_pos()
-  return builtin.git_bcommits_range({
+  return builtin.git_bcommits_range {
     from = b[1],
-    to = e[1]
-  })
-end, { desc = "find [c]ommits (range)"})
+    to = e[1],
+  }
+end, { desc = "find [c]ommits (range)" })
 
 vim.keymap.set("n", "<leader>gb", function()
   return builtin.git_branches()
-end, { desc = "find [b]ranches"})
+end, { desc = "find [b]ranches" })
 
 vim.keymap.set("n", "<leader>gB", function()
-  return builtin.git_branches({
-    show_remote_tracking_branches = false
-  })
-end, { desc = "find [B]ranches (local)"})
-
+  return builtin.git_branches {
+    show_remote_tracking_branches = false,
+  }
+end, { desc = "find [B]ranches (local)" })

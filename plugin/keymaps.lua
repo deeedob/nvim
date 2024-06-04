@@ -66,3 +66,7 @@ end, { expr = true })
 map("n", "]d", vim.diagnostic.goto_next)
 map("n", "[d", vim.diagnostic.goto_prev)
 
+-- various
+map("n", "<leader>q", "<cmd>qa<CR>", { desc = "Quit all buffers" })
+map("i", "<C-BS>", "<C-W>", { desc = "Remove word before", noremap = true })
+map("n", "<leader>w", "<cmd>silent write<cr>", { desc = "Save the current file" })

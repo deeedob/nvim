@@ -41,4 +41,30 @@ return {
       }
     end,
   },
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    lazy = false,
+    cmd = { "TSContextToggle" },
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+    },
+    keys = {
+      {
+        "<leader>uC",
+        "<cmd>TSContextToggle<cr>",
+        desc = "Treesitter Context Toggle",
+      },
+    },
+    init = function()
+      -- TODO: update
+      -- vim.cmd("highlight link TreesitterContext Comment")
+      -- vim.cmd("highlight link TreesitterContextLineNumber Comment")
+      -- vim.cmd("highlight link TreesitterContextSeparator Comment")
+      -- vim.cmd("highlight link TreesitterContextBottom Comment")
+    end,
+    opts = {
+      mode = "cursor",
+      max_lines = 3,
+    },
+  },
 }

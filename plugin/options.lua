@@ -1,5 +1,7 @@
 local opt = vim.opt
 
+opt.tabstop = 4
+opt.softtabstop = 4
 opt.shiftwidth = 4
 opt.expandtab = true
 
@@ -11,9 +13,11 @@ opt.cursorcolumn = false
 -- preview regex items
 opt.inccommand = "split"
 
+opt.signcolumn = "auto"
+
 -- scrolloff
-opt.scrolloff = 5
-opt.sidescrolloff = 5
+opt.scrolloff = 8
+opt.sidescrolloff = 4
 
 -- searching
 opt.smartcase = true
@@ -26,7 +30,6 @@ opt.relativenumber = false
 opt.splitbelow = true
 opt.splitright = true
 
-opt.signcolumn = "yes"
 opt.shada = { "'10", "<0", "s10", "h" }
 
 opt.wrap = false

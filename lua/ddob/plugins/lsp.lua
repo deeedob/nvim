@@ -14,8 +14,7 @@ return {
       "stevearc/conform.nvim",
 
       -- handler for definitions, references, outline ...
-      "DNLHC/glance.nvim",
-      "hedyhli/outline.nvim",
+      "folke/trouble.nvim",
     },
     config = function()
       require("neodev").setup {
@@ -34,12 +33,18 @@ return {
 
       local servers = {
         clangd = {
-          filetypes = { "c", "cpp", "objc", "objcpp" },
           init_options = {
             clangdFileStatus = true,
             usePlaceholders = true,
             completeUnimported = true,
           },
+          filetypes = { "c", "cpp", "objc", "objcpp" },
+          on_new_config = function(new_config, new_cwd)
+            local status, cmake = pcall(require, "cmake-tools")
+            if status then
+              cmake.clangd_on_new_config(new_config)
+            end
+          end,
           cmd = {
             "clangd",
             "--background-index",
@@ -49,14 +54,31 @@ return {
             "--completion-style=detailed",
             "--function-arg-placeholders",
             "--cross-file-rename",
-            "--enable-config",
-            "--query-driver=/usr/bin/clang++",
+            "--enable-config", -- uses ~/.local/clangd/config.yaml
+            "--query-driver=/usr/bin/clang++,/usr/bin/g++",
             "-j=4",
           },
         },
+        qmlls = {
+          manual_install = true,
+          cmd = {
+            "qmlls",
+            "-b",
+            (function()
+              -- return require("cmake-tools").get_build_directory().filename
+              return "/home/ddob/qt/qt6/qtdeclarative/examples/quickcontrols/filesystemexplorer/cmake-build/Debug"
+            end)(),
+          },
+          filetypes = { "qml" },
+          single_file_support = true,
+        },
         neocmake = true,
         bashls = true,
-        lua_ls = true,
+        lua_ls = {
+          server_capabilities = {
+            semanticTokensProvider = vim.NIL,
+          },
+        },
         rust_analyzer = true,
         marksman = true,
         jsonls = {
@@ -95,6 +117,10 @@ return {
         "shellcheck",
         "shfmt",
         "prettier",
+        "buf",
+        "markdownlint",
+        "cmakelint",
+        "cmakelang",
       }
 
       vim.list_extend(ensure_installed, servers_to_install)
@@ -119,13 +145,17 @@ return {
 
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
-          -- local bufnr = args.buf
+          local bufnr = args.buf
           local client = assert(
             vim.lsp.get_client_by_id(args.data.client_id),
             "must have valid client"
           )
-          vim.opt_local.omnifunc = "v:lua.vim.lsp.omnifunc"
+          local settings = servers[client.name]
+          if type(settings) ~= "table" then
+            settings = {}
+          end
 
+          vim.opt_local.omnifunc = "v:lua.vim.lsp.omnifunc"
           vim.keymap.set(
             "n",
             "K",
@@ -200,35 +230,85 @@ return {
             { desc = "[S]ymbols", buffer = 0 }
           )
 
-          -- vim.api.nvim_create_autocmd("CursorHold", {
-          --   group = vim.api.nvim_create_augroup("ddob_diagnostic_hover", { clear = true }),
-          --   buffer = 0,
-          --   callback = function()
-          --     local opts = {
-          --       focusable = false,
-          --       close_events = { "BufLeave", "CursorMoved", "InsertEnter", "FocusLost" },
-          --       border = "rounded",
-          --       source = "always",
-          --       prefix = " ",
-          --       scope = "line",
-          --     }
-          --     vim.diagnostic.open_float(nil, opts)
-          --   end,
-          -- })
-
-          local filetype = vim.bo[0].filetype
+          local filetype = vim.bo[bufnr].filetype
           if disable_semantic_tokens[filetype] then
             client.server_capabilities.semanticTokensProvider = nil
+          end
+
+          if settings.server_capabilities then
+            for k, v in pairs(settings.server_capabilities) do
+              if v == vim.NIL then
+                ---@diagnostic disable-next-line: cast-local-type
+                v = nil
+              end
+              client.server_capabilities[k] = v
+            end
           end
         end,
       })
 
+      vim.diagnostic.config {
+        underline = true,
+        virtual_text = false,
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = "",
+            [vim.diagnostic.severity.WARN] = "",
+            [vim.diagnostic.severity.INFO] = "",
+            [vim.diagnostic.severity.HINT] = "",
+          },
+          numhl = {
+            [vim.diagnostic.severity.ERROR] = "ColumnDiagnosticError",
+            [vim.diagnostic.severity.WARN] = "ColumnDiagnosticWarn",
+            [vim.diagnostic.severity.INFO] = "ColumnDiagnosticInfo",
+            [vim.diagnostic.severity.HINT] = "ColumnDiagnosticHint",
+          },
+        },
+        update_in_insert = true,
+        severity_sort = true,
+        float = {
+          scope = "line",
+          border = "rounded",
+          header = "",
+          prefix = " ",
+          focusable = false,
+          source = true,
+        },
+      }
+      vim.cmd [[
+        " ColumnDiagnosticBg by default takes Normal background.
+        " The foreground color is fetched from synIDattr
+        " https://stackoverflow.com/questions/18774910/how-to-partially-link-highlighting-groups
+        let bg_color = synIDattr(hlID('Normal'), 'bg')
+        exec 'hi ColumnDiagnosticBg guibg=' . bg_color
+        exec 'hi ColumnDiagnosticHint guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticHint'), 'fg')
+        exec 'hi ColumnDiagnosticInfo guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticInfo'), 'fg')
+        exec 'hi ColumnDiagnosticWarn guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticWarn'), 'fg')
+        exec 'hi ColumnDiagnosticError guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticError'), 'fg')
+        hi link SyntasticErrorLine SignColumn
+      ]]
+
       -- TODO: https://github.com/stevearc/conform.nvim/issues/92
+      local default_clang = "file"
+      local has_local_clang = vim.fn.filereadable ".clang-format" == 1
+      if not has_local_clang then
+        default_clang = "file:"
+          .. os.getenv "HOME"
+          .. "/.config/clangd/.clang-format"
+      end
       require("conform").setup {
         format = {
           timeout_ms = 3000,
           async = false,
           quiet = false,
+        },
+        formatters = {
+          clang_format = {
+            "-assume-filename",
+            "$FILENAME",
+            "-style",
+            default_clang,
+          },
         },
         formatters_by_ft = {
           lua = { "stylua" },
@@ -243,72 +323,154 @@ return {
         },
       }
 
-      vim.keymap.set("n", "<leader>lf", function()
+      vim.keymap.set({ "n", "v" }, "<leader>lf", function()
         require("conform").format {
           async = true,
           lsp_fallback = false,
         }
-      end, { desc = "Format buffer" })
+      end, { desc = "[f]ormat buffer" })
 
-      ---@diagnostic disable-next-line: missing-fields
-      require("glance").setup {
-        height = 13,
-        detached = false,
-        list = {
-          position = "left",
-          width = 0.33,
-        },
-        theme = {
-          enable = true,
-          mode = "auto",
-        },
-        hooks = {
-          before_open = function(results, open, jump, method)
-            if #results == 1 then
-              jump(results[1])
-            else
-              open(results)
-            end
-          end,
-        },
-      }
+      vim.keymap.set({ "n", "v" }, "<leader>lg", function()
+        local ignore_filetypes = { "lua" }
+        if vim.tbl_contains(ignore_filetypes, vim.bo.filetype) then
+          vim.notify(
+            "range formatting for "
+              .. vim.bo.filetype
+              .. " not working properly."
+          )
+          return
+        end
 
-      local glance = {}
-      glance.references = function(opts)
-        require("glance").open "references"
+        local hunks = require("gitsigns").get_hunks()
+        if hunks == nil or next(hunks) == nil then
+          vim.notify("no git hunks to format", "info", { title = "formating" })
+          return
+        end
+
+        local format = require("conform").format
+        local function format_range()
+          if next(hunks) == nil then
+            vim.notify(
+              "done formatting git hunks",
+              "info",
+              { title = "formatting" }
+            )
+            return
+          end
+          local hunk = nil
+          while next(hunks) ~= nil and (hunk == nil or hunk.type == "delete") do
+            hunk = table.remove(hunks)
+          end
+
+          if hunk ~= nil and hunk.type ~= "delete" then
+            local start = hunk.added.start
+            local last = start + hunk.added.count
+            -- nvim_buf_get_lines uses zero-based indexing -> subtract from last
+            local last_hunk_line =
+              vim.api.nvim_buf_get_lines(0, last - 2, last - 1, true)[1]
+            local range = {
+              start = { start, 0 },
+              ["end"] = { last - 1, last_hunk_line:len() },
+            }
+            format(
+              { range = range, async = true, lsp_fallback = true },
+              function()
+                vim.defer_fn(function()
+                  format_range()
+                end, 1)
+              end
+            )
+          end
+        end
+
+        format_range()
+      end, { desc = "Format [g]it hunks" })
+
+      local trouble = {}
+      trouble.references = function(_)
+        require("trouble").open {
+          mode = "lsp_references",
+          focus = true,
+        }
       end
-      glance.definitions = function(opts)
-        require("glance").open "definitions"
+      trouble.definitions = function(_)
+        require("trouble").open {
+          mode = "lsp_definitions",
+          focus = true,
+        }
       end
-      glance.implementations = function(opts)
-        require("glance").open "implementations"
+      trouble.declarations = function(_)
+        require("trouble").open {
+          mode = "lsp_declarations",
+          focus = true,
+        }
       end
-      glance.type_definitions = function(opts)
-        require("glance").open "type_definitions"
+      trouble.type_definitions = function(_)
+        require("trouble").open {
+          mode = "lsp_type_definitions",
+          focus = true,
+        }
+      end
+      trouble.implementations = function(_)
+        require("trouble").open "lsp_implementations"
+      end
+      trouble.incoming_calls = function(_)
+        require("trouble").open "lsp_incoming_calls"
+      end
+      trouble.outgoing_calls = function(_)
+        require("trouble").open "lsp_outgoing_calls"
+      end
+      trouble.document_symbol = function(_)
+        require("trouble").toggle "symbols"
       end
 
       vim.lsp.handlers["textDocument/references"] =
-        vim.lsp.with(glance.references, {})
+        vim.lsp.with(trouble.references, {})
 
       vim.lsp.handlers["textDocument/definition"] =
-        vim.lsp.with(glance.definitions, {})
+        vim.lsp.with(trouble.definitions, {})
+
+      vim.lsp.handlers["textDocument/declaration"] =
+        vim.lsp.with(trouble.declarations, {})
 
       vim.lsp.handlers["textDocument/typeDefinition"] =
-        vim.lsp.with(glance.type_definitions, {})
+        vim.lsp.with(trouble.type_definitions, {})
 
       vim.lsp.handlers["textDocument/implementation"] =
-        vim.lsp.with(glance.implementations, {})
-
-      require("outline").setup()
-
-      local outline = {}
-      outline.documentSymbol = function (opts)
-        vim.cmd("Outline")
-      end
+        vim.lsp.with(trouble.implementations, {})
 
       vim.lsp.handlers["textDocument/documentSymbol"] =
-        vim.lsp.with(outline.documentSymbol, {})
+        vim.lsp.with(trouble.document_symbol, {})
 
+      vim.lsp.handlers["callHierarchy/incomingCalls"] =
+        vim.lsp.with(trouble.incoming_calls, {})
+
+      vim.lsp.handlers["callHierarchy/outgoingCalls"] =
+        vim.lsp.with(trouble.outgoing_calls, {})
+
+      vim.keymap.set("n", "<leader>lt", function()
+        require("trouble").toggle()
+      end, { desc = "Trouble [t]oggle" })
+
+      vim.keymap.set("n", "<leader>lP", function()
+        require("trouble").toggle {
+          mode = "diagnostics",
+        }
+      end, { desc = "Diagnostic (Project)" })
+
+      vim.keymap.set(
+        "n",
+        "<leader>lD",
+        "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+        { desc = "Diagnostic (Buffer)" }
+      )
+
+      -- Automatically Open Trouble Quickfix
+      vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+        callback = function()
+          vim.cmd [[Trouble qflist open]]
+        end,
+      })
     end,
   },
 }

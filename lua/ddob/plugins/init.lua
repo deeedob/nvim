@@ -20,12 +20,21 @@ return {
         ["<leader>l"] = { name = "[L]sp" },
         ["<leader>g"] = { name = "[G]it" },
         ["<leader>u"] = { name = "[U]ser Interface" },
+        ["<leader>ug"] = { name = "[G]it" },
         ["<leader>e"] = { name = "[E]xplorer" },
         ["<leader>t"] = { name = "[T]erminal" },
         ["<leader>d"] = { name = "[D]debug" },
         ["<leader>b"] = { name = "[B]buffer" },
+
         ["<leader>c"] = { name = "[C]ode" },
+        ["<leader>cD"] = { name = "[D]ocs" },
       }
+    end,
+  },
+  {
+    "tjdevries/colorbuddy.nvim",
+    config = function()
+      require "ddob.colorscheme"
     end,
   },
 }

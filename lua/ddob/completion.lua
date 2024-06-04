@@ -97,7 +97,15 @@ cmp.setup {
   },
 }
 
-cmp.event:on("confirm_done", function (event)
+cmp.event:on("confirm_done", function(event)
+  -- clangd already adds parentheses
+  local excluded_filetypes = { "cpp", "c", "cuda" }
+  local ft = vim.bo.filetype
+  for _, f in ipairs(excluded_filetypes) do
+    if ft == f then
+      return
+    end
+  end
   require("ddob.utils").auto_brackets(event.entry)
 end)
 

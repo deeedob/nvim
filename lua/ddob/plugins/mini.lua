@@ -3,7 +3,6 @@ return {
     "echasnovski/mini.nvim",
     config = function()
       require("mini.ai").setup()
-      require("mini.surround").setup()
       require("mini.pairs").setup {
         mappings = {
           ["`"] = {
@@ -14,7 +13,6 @@ return {
           },
         },
       }
-      -- require("mini.bracketed").setup()
     end,
   },
 }
