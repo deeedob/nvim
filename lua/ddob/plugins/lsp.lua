@@ -386,7 +386,9 @@ return {
         format_range()
       end, { desc = "Format [g]it hunks" })
 
+      require("trouble").setup{}
       local trouble = {}
+
       trouble.references = function(_)
         require("trouble").open {
           mode = "lsp_references",
@@ -421,7 +423,12 @@ return {
         require("trouble").open "lsp_outgoing_calls"
       end
       trouble.document_symbol = function(_)
-        require("trouble").toggle "symbols"
+        require("trouble").toggle {
+          mode = "lsp_document_symbols",
+          win = {
+            position = "right"
+          }
+        }
       end
 
       vim.lsp.handlers["textDocument/references"] =
