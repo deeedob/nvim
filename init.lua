@@ -8,7 +8,7 @@ vim.o.guicursor =
   .. "r-cr-o:hor20"
   -- .. "a:Cursor"
 
-vim.cmd [[colorscheme retrobox]]
+vim.api.nvim_command "colorscheme ddob-kanagawa"
 
 local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then

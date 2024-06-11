@@ -7,10 +7,17 @@ lspkind.init {}
 
 local cmp = require "cmp"
 local compare = cmp.config.compare
+-- @type lsp.CompletionItemKind
+local kind = require("cmp.types").lsp.CompletionItemKind
 
 cmp.setup {
   sources = {
-    { name = "nvim_lsp" },
+    {
+      name = "nvim_lsp",
+      entry_filter = function(entry)
+        return kind[entry:get_kind()] ~= "Text"
+      end,
+    },
     { name = "luasnip", keyword_length = 2 },
     { name = "path" },
     -- { name = "buffer" },

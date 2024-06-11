@@ -1,8 +1,5 @@
 local utils = require "ddob.utils"
 
-vim.opt_local.shiftwidth = 4
-vim.opt_local.expandtab = true
-
 -- don't inden't labels (fixes indenting on '::')
 vim.opt_local.cinoptions:append "L0"
 

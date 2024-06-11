@@ -66,6 +66,14 @@ end, { expr = true })
 map("n", "]d", vim.diagnostic.goto_next)
 map("n", "[d", vim.diagnostic.goto_prev)
 
+-- buffers
+map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
+map("n", "L", "<cmd>bnext<cr>", { desc = "Next buffer" })
+map("n", "<leader>bm", ":tabnew %<cr>", { desc = "Buffer fullscreen" })
+map("n", "C", ":b#|bd#<cr>", { desc = "Close current buffer" })
+map("n", "D", ":bd<cr>", { desc = "Delete current buffer" })
+map("n", "+", "<C-w>=", { desc = "Equalize buffers" })
+
 -- various
 map("n", "<leader>q", "<cmd>qa<CR>", { desc = "Quit all buffers" })
 map("i", "<C-BS>", "<C-W>", { desc = "Remove word before", noremap = true })

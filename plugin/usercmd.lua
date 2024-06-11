@@ -43,23 +43,3 @@ vim.api.nvim_create_user_command("Redir", function(ctx)
   vim.opt_local.modified = false
 end, { nargs = "+", complete = "command" })
 
--- Print inspected @v
-P = function(v)
-  print(vim.inspect(v))
-  return v
-end
-
-RELOAD = function(...)
-  return require("plenary.reload").reload_module(...)
-end
-
--- Reload @mod from table
-R = function(mod)
-  RELOAD(mod)
-  return require(mod)
-end
-
--- Show the table for @mod
-S = function(mod)
-  P(package.loaded[mod])
-end

@@ -276,19 +276,14 @@ return {
         },
       }
       vim.cmd [[
-        " ColumnDiagnosticBg by default takes Normal background.
-        " The foreground color is fetched from synIDattr
-        " https://stackoverflow.com/questions/18774910/how-to-partially-link-highlighting-groups
-        let bg_color = synIDattr(hlID('Normal'), 'bg')
-        exec 'hi ColumnDiagnosticBg guibg=' . bg_color
-        exec 'hi ColumnDiagnosticHint guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticHint'), 'fg')
-        exec 'hi ColumnDiagnosticInfo guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticInfo'), 'fg')
-        exec 'hi ColumnDiagnosticWarn guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticWarn'), 'fg')
-        exec 'hi ColumnDiagnosticError guibg=' . synIDattr(hlID('ColumnDiagnosticBg'), 'bg') . ' guifg=' . synIDattr(hlID('DiagnosticError'), 'fg')
+        " Highlight the NumColumn with diagnostic output
+        exec 'hi ColumnDiagnosticHint guifg=' . synIDattr(hlID('DiagnosticHint'), 'fg')
+        exec 'hi ColumnDiagnosticInfo guifg=' . synIDattr(hlID('DiagnosticInfo'), 'fg')
+        exec 'hi ColumnDiagnosticWarn guifg=' . synIDattr(hlID('DiagnosticWarn'), 'fg')
+        exec 'hi ColumnDiagnosticError guifg=' . synIDattr(hlID('DiagnosticError'), 'fg')
         hi link SyntasticErrorLine SignColumn
       ]]
 
-      -- TODO: https://github.com/stevearc/conform.nvim/issues/92
       local default_clang = "file"
       local has_local_clang = vim.fn.filereadable ".clang-format" == 1
       if not has_local_clang then

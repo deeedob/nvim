@@ -7,6 +7,7 @@ local highlights = require "tabby.module.highlight"
 local theme = {
   head = "TabLine",
   tail = "TabLine",
+
   fill = "TabLineFill",
   win = "TabLineSel",
 
@@ -14,7 +15,7 @@ local theme = {
   tab = "TabLine",
   current_buf = "TabLineSel",
   buf = "TabLine",
-  current = "TabLine"
+  current = "NormalNC"
 }
 
 local devicons = require "nvim-web-devicons"
@@ -120,8 +121,8 @@ local components = function()
       local icon, icon_hl = devicons.get_icon(filename, ext)
       if not icon then
         icon = ""
-        icon_hl = hl
       end
+      icon_hle = ensure_hl_obj(icon_hl)
 
       table.insert(coms, {
         type = "text",
@@ -131,7 +132,7 @@ local components = function()
         type = "text",
         text = {
           " " .. icon .. " ",
-          hl = icon_hl,
+          hl = { fg = icon_hle and icon_hle.fg or "NONE", bg = ensure_hl_obj(hl).bg },
         },
       })
       table.insert(coms, {

@@ -31,10 +31,4 @@ return {
       }
     end,
   },
-  {
-    "tjdevries/colorbuddy.nvim",
-    config = function()
-      require "ddob.colorscheme"
-    end,
-  },
 }

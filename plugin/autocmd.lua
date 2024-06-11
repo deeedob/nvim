@@ -1,11 +1,9 @@
 local autocmd = vim.api.nvim_create_autocmd
-local function augroup(name)
-  return vim.api.nvim_create_augroup("ddob_" .. name, { clear = true })
-end
+local augroup = vim.api.nvim_create_augroup("config", { clear = false })
 
 -- Quick close
 autocmd("FileType", {
-  group = augroup "close_with_q",
+  group = augroup,
   pattern = { "help", "man", "lspinfo", "checkhealth", "qf", "query", "notify" },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
@@ -19,19 +17,22 @@ autocmd("FileType", {
 })
 
 -- Remove trailing whitespaces
-autocmd(
-  "BufWritePre",
-  { group = augroup "trailing_space", command = "%s/\\s\\+$//e" }
-)
+autocmd("BufWritePre", { group = augroup, command = "%s/\\s\\+$//e" })
 
 autocmd("BufWinEnter", {
-  group = augroup "no_comment_on_o",
+  group = augroup,
   command = "setlocal formatoptions-=o",
 })
 
+-- Check if buffers changes upon regaining focus
+vim.api.nvim_create_autocmd(
+  { "FocusGained", "VimResume" },
+  { command = "checktime", group = augroup }
+)
+
 -- Fancy yank
 autocmd("TextYankPost", {
-  group = augroup "highlight_yank",
+  group = augroup,
   callback = function()
     vim.highlight.on_yank {
       timeout = 175,
@@ -41,7 +42,7 @@ autocmd("TextYankPost", {
 
 -- Go to the last loc when opening a buffer
 autocmd("BufReadPost", {
-  group = augroup "last_loc",
+  group = augroup,
   callback = function(event)
     local exclude = { "gitcommit", "NeogitCommitMessage" }
     local buf = event.buf
@@ -56,5 +57,35 @@ autocmd("BufReadPost", {
     if mark[1] > 0 and mark[1] <= lcount then
       pcall(vim.api.nvim_win_set_cursor, 0, mark)
     end
+  end,
+})
+
+-- Sync syntax when not editing text
+autocmd("CursorHold", {
+  callback = function(event)
+    if vim.api.nvim_get_option_value("syntax", { buf = event.buf }) ~= "" then
+      vim.api.nvim_command "syntax sync fromstart"
+    end
+
+    if vim.lsp.semantic_tokens then
+      vim.lsp.semantic_tokens.force_refresh(event.buf)
+    end
+  end,
+  group = augroup,
+})
+
+autocmd("RecordingEnter", {
+  group = augroup,
+  callback = function(event)
+    local msg = "Recording macro at reg[" .. vim.fn.reg_recording() .. "]"
+    vim.notify(msg)
+  end,
+})
+
+autocmd("RecordingLeave", {
+  group = augroup,
+  callback = function(event)
+    local msg = "Finished recording at reg[" .. vim.fn.reg_recording() .. "]"
+    vim.notify(msg)
   end,
 })
