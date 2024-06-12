@@ -14,7 +14,7 @@ opt.cursorcolumn = false
 -- preview regex items
 opt.inccommand = "split"
 
-opt.signcolumn = "auto"
+opt.signcolumn = "auto:3"
 
 -- scrolloff
 opt.scrolloff = 8
