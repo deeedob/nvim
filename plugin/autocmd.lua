@@ -4,7 +4,7 @@ local augroup = vim.api.nvim_create_augroup("config", { clear = false })
 -- Quick close
 autocmd("FileType", {
   group = augroup,
-  pattern = { "help", "man", "lspinfo", "checkhealth", "qf", "query", "notify" },
+  pattern = { "help", "man", "lspinfo", "checkhealth", "qf", "query", "notify", "dap-float" },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
     vim.keymap.set(

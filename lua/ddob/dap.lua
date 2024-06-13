@@ -1,4 +1,35 @@
-require("dapui").setup {}
+require("dapui").setup {
+  layouts = {
+    {
+      elements = {
+        {
+          id = "scopes",
+          size = 0.45,
+        },
+        {
+          id = "stacks",
+          size = 0.45,
+        },
+        {
+          id = "breakpoints",
+          size = 0.1,
+        },
+      },
+      position = "left",
+      size = 35,
+    },
+    {
+      elements = {
+        {
+          id = "console",
+          size = 1.0,
+        },
+      },
+      position = "bottom",
+      size = 10,
+    },
+  },
+}
 require("nvim-dap-virtual-text").setup {}
 
 local dap = require "dap"
@@ -16,14 +47,12 @@ end
 dap.listeners.before.event_exited.dapui_config = function()
   dapui.close()
 end
-dap.listeners.after["event_initialized"]["me"] = function()
-  -- TODO: Sync with lsp.lua
-  for _, buf in pairs(vim.api.nvim_list_bufs()) do
-    vim.api.nvim_clear_autocmds {
-      buffer = buf,
-      group = lsp_hover_augroup,
-    }
 
+-- Remove all normal keymap 'K' and set it to dap hover.
+-- Restore it when we're finished.
+local keymap_restore = {}
+dap.listeners.after["event_initialized"]["me"] = function()
+  for _, buf in pairs(vim.api.nvim_list_bufs()) do
     local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
     for _, keymap in pairs(keymaps) do
       if keymap.lhs == "K" then
@@ -32,12 +61,31 @@ dap.listeners.after["event_initialized"]["me"] = function()
       end
     end
   end
-  vim.api.nvim_set_keymap(
-    "n",
-    "K",
-    '<Cmd>lua require("dap.ui.widgets").hover()<CR>',
-    { silent = true }
-  )
+
+  vim.keymap.set("n", "K", function()
+    require("dap.ui.widgets").hover()
+  end, { silent = true })
+
+  -- Auto close dap-hover buffer on BufLeave
+  vim.api.nvim_create_autocmd("WinLeave", {
+    group = vim.api.nvim_create_augroup("config", { clear = false }),
+    pattern = "dap-hover*",
+    callback = function(event)
+      vim.api.nvim_buf_delete(event.buf, {})
+    end,
+  })
+end
+dap.listeners.after["event_terminated"]["me"] = function()
+  for _, keymap in pairs(keymap_restore) do
+    local rhs = keymap.callback ~= nil and keymap.callback or keymap.rhs
+    vim.keymap.set(
+      keymap.mode,
+      keymap.lhs,
+      rhs,
+      { buffer = keymap.buffer, silent = keymap.silent == 1 }
+    )
+  end
+  keymap_restore = {}
 end
 
 local sc = vim.api.nvim_get_hl(0, { name = "SignColumn", create = false })
