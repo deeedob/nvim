@@ -17,6 +17,33 @@ map("t", "<C-j>", "<cmd>wincmd j<cr>", { desc = "Focus lower window", silent = t
 map("t", "<C-k>", "<cmd>wincmd k<cr>", { desc = "Focus upper window", silent = true })
 map("t", "<C-l>", "<cmd>wincmd l<cr>", { desc = "Focus right window", silent = true })
 
+map("n", "gf", function ()
+  local function clean(name)
+    name = name:gsub("\n", "")
+    name = name:match( "^[^%s]+")
+    return name
+  end
+
+  local filename = vim.fn.expand("<cfile>")
+  local exists = vim.fn.filereadable(filename)
+
+  -- TODO
+  -- if exists == 0 then
+  --   filename = clean(filename)
+  --   exists = vim.fn.filereadable(filename)
+  --   print("new: " .. filename)
+  -- end
+
+  if exists == 0 then
+    vim.notify("Can't goto file: " .. filename)
+    return
+  end
+
+  vim.cmd("wincmd w")
+  vim.cmd("edit " .. filename)
+
+end, { desc = "Goto file", noremap = true, silent = true } )
+
 -- Resize
 map({ "n" }, "<S-Left>", function()
 	utils.change_width("left")
