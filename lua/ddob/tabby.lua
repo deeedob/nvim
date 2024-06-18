@@ -15,7 +15,7 @@ local theme = {
   tab = "TabLine",
   current_buf = "TabLineSel",
   buf = "TabLine",
-  current = "NormalNC"
+  current = "TabLineFill"
 }
 
 local devicons = require "nvim-web-devicons"

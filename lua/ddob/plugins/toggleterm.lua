@@ -18,6 +18,23 @@ return {
       "<cmd>ToggleTerm direction=float<cr>",
       desc = "Terminal Float",
     },
+    {
+      "<leader>tc",
+      function ()
+        local file = vim.fn.expand('%')
+        local path = vim.fn.fnamemodify(file, ":h")
+        if vim.fn.isdirectory(path) then
+          local tterm = require("toggleterm.terminal")
+          local t, ok = tterm.get_or_create_term(0, path)
+          tterm.Terminal.open(t, 15, "horizontal")
+        else
+          vim.notify("current buffer: " .. file .. "\nnot valid!")
+        end
+
+      end,
+      "<cmd>ToggleTerm direction=float<cr>",
+      desc = "Terminal current file",
+    },
     { "<leader>ts", "<cmd>TermSelect<cr>", desc = "Select Terminal" },
     {
       "<leader>ta",

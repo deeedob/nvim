@@ -306,7 +306,7 @@ local editorgroups = {
   CursorColumn = { link = "CursorLine" },
   CursorLine = { bg = theme.ui.bg_p2 },
   TermCursor = { fg = theme.ui.bg, bg = palette.dragonRed },
-  Directory = { fg = theme.syn.fun },
+  Directory = { fg = palette.springViolet1 },
   DiffAdd = { bg = theme.diff.add },
   DiffChange = { bg = theme.diff.change },
   DiffDelete = { fg = theme.vcs.removed, bg = theme.diff.delete },
@@ -765,13 +765,13 @@ local plugin_groups = {
   DapUIScope = { link = "Special" }, -- guifg=#00F1F5"
   DapUIType = { link = "Type" }, -- guifg=#D484FF"
   -- DapUIValue = { link = "Normal" },
-  DapUIModifiedValue = { fg = theme.syn.special1, bold = true }, -- guifg=#00F1F5 gui=bold"
+  DapUIModifiedValue = { fg = palette.dragonGreen2 , bold = true }, -- guifg=#00F1F5 gui=bold"
   DapUIDecoration = { fg = theme.ui.float.fg_border }, -- guifg=#00F1F5"
   DapUIThread = { fg = theme.syn.identifier }, --guifg=#A9FF68"
-  DapUIStoppedThread = { fg = theme.syn.special1 }, --guifg=#00f1f5"
+  DapUIStoppedThread = { fg = theme.syn.func_builtin }, --guifg=#00f1f5"
   -- DapUIFrameName = { link = "Normal"},
-  DapUISource = { fg = theme.syn.special2 }, -- guifg=#D484FF"
-  DapUILineNumber = { fg = theme.syn.special1 }, -- guifg=#00f1f5"
+  DapUISource = { fg = theme.syn.keyword_return }, -- guifg=#D484FF"
+  DapUILineNumber = { fg = theme.syn.property }, -- guifg=#00f1f5"
   DapUIFloatBorder = { fg = theme.ui.float.fg_border }, -- guifg=#00F1F5"
   DapUIWatchesEmpty = { fg = theme.diag.error }, -- guifg=#F70067"
   DapUIWatchesValue = { fg = theme.syn.identifier }, -- guifg=#A9FF68"
@@ -782,14 +782,14 @@ local plugin_groups = {
   -- DapUIBreakpointsLine = {}, -- DapUILineNumber"
   DapUIBreakpointsDisabledLine = { link = "Comment" }, --guifg=#424242"
   -- DapUICurrentFrameName = {}, -- DapUIBreakpointsCurrentLine"
-  DapUIStepOver = { fg = theme.syn.special1 }, --guifg=#00f1f5"
-  DapUIStepInto = { fg = theme.syn.special1 }, --guifg=#00f1f5"
-  DapUIStepBack = { fg = theme.syn.special1 }, --guifg=#00f1f5"
-  DapUIStepOut = { fg = theme.syn.special1 }, --guifg=#00f1f5"
+  DapUIStepOver = { fg = palette.dragonGreen2 }, --guifg=#00f1f5"
+  DapUIStepInto = { fg = palette.dragonGreen2 }, --guifg=#00f1f5"
+  DapUIStepBack = { fg = palette.dragonGreen2 }, --guifg=#00f1f5"
+  DapUIStepOut = { fg = palette.dragonGreen2 }, --guifg=#00f1f5"
   DapUIStop = { fg = theme.diag.error }, --guifg=#F70067"
   DapUIPlayPause = { fg = theme.syn.string }, --guifg=#A9FF68"
   DapUIRestart = { fg = theme.syn.string }, --guifg=#A9FF68"
-  DapUIUnavailable = { fg = theme.syn.comment }, --guifg=#424242"
+  DapUIUnavailable = { fg = theme.syn.comment_documentation }, --guifg=#424242"
   -- Floaterm
   FloatermBorder = { fg = theme.ui.float.fg_border, bg = theme.ui.bg },
   -- NeoVim                         = {},
@@ -837,24 +837,16 @@ local plugin_groups = {
   -- CmpItemKindEvent = {},
   -- CmpItemKindColor = {},
 
-  -- IndentBlankline
-  IndentBlanklineChar = { fg = theme.ui.whitespace },
-  IndentBlanklineSpaceChar = { fg = theme.ui.whitespace },
-  IndentBlanklineSpaceCharBlankline = { fg = theme.ui.whitespace },
-  IndentBlanklineContextChar = { fg = theme.ui.special },
-  IndentBlanklineContextStart = { sp = theme.ui.special, underline = true },
-  IblIndent = { fg = theme.ui.whitespace },
-  IblWhitespace = { fg = theme.ui.whitespace },
-  IblScope = { fg = theme.ui.special },
   -- Lazy
   LazyProgressTodo = { fg = theme.ui.nontext },
   -- Illuminate
   IlluminatedWordWrite = { bg = theme.ui.bg_p2 },
   IlluminatedWordText = { link = "IlluminatedWordWrite" },
   IlluminatedWordRead = { link = "IlluminatedWordWrite" },
+
   -- Inline
-  InclineNormal = { fg = theme.syn.constant_builtin },
-  InclineNormalNC = { fg = theme.ui.special },
+  InclineNormal = { fg = theme.syn.constant_builtin, bg = theme.ui.bg_p1 },
+  InclineNormalNC = { fg = theme.ui.special, bg = theme.ui.bg_p1 },
 }
 
 local groups = vim.tbl_extend(
