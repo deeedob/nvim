@@ -2,11 +2,10 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 vim.o.termguicolors = true
-vim.o.guicursor =
-     "n-v-c-sm:block-Cursor,"
+vim.o.guicursor = "n-v-c-sm:block-Cursor,"
   .. "i-ci-ve:ver30-blinkwait200-blinkon800,"
   .. "r-cr-o:hor20"
-  -- .. "a:Cursor"
+-- .. "a:Cursor"
 
 vim.api.nvim_command "colorscheme ddob-kanagawa"
 
@@ -31,3 +30,9 @@ require("lazy").setup({ import = "ddob/plugins" }, {
 })
 
 require("ddob.utils").resetTerminalBg()
+
+vim.cmd [[
+  if has('nvim')
+    let $GIT_EDITOR = 'nvr -cc split --remote-wait'
+  endif
+]]
