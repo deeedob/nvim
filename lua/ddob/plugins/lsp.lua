@@ -34,7 +34,7 @@ return {
       local servers = {
         clangd = {
           init_options = {
-            clangdFileStatus = true,
+            -- clangdFileStatus = true,
             usePlaceholders = true,
             completeUnimported = true,
           },
@@ -47,15 +47,20 @@ return {
           end,
           cmd = {
             "clangd",
+            "--all-scopes-completion",
             "--background-index",
             "--clang-tidy",
             "--header-insertion=never",
             "--header-insertion-decorators",
-            "--completion-style=detailed",
+            "--completion-style=detailed", -- or bundled
+            "--header-insertion=iwyu",
+            "--header-insertion-decorators",
             "--function-arg-placeholders",
             "--cross-file-rename",
             "--enable-config", -- uses ~/.local/clangd/config.yaml
             "--query-driver=/usr/bin/clang++,/usr/bin/g++",
+            "--rename-file-limit=400",
+            "--pch-storage=memory", -- increases memory usage but improves performance, memory, disk
             "-j=4",
           },
         },
@@ -99,6 +104,9 @@ return {
               schemas = require("schemastore").yaml.schemas(),
             },
           },
+        },
+        pyright = {
+
         },
       }
 
@@ -381,7 +389,7 @@ return {
         format_range()
       end, { desc = "Format [g]it hunks" })
 
-      require("trouble").setup{}
+      require("trouble").setup {}
       local trouble = {}
 
       trouble.references = function(_)
@@ -421,8 +429,8 @@ return {
         require("trouble").toggle {
           mode = "lsp_document_symbols",
           win = {
-            position = "right"
-          }
+            position = "right",
+          },
         }
       end
 

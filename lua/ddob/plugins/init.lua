@@ -8,26 +8,25 @@ return {
     end,
     config = function()
       local wk = require "which-key"
-      wk.setup {
-        window = {
-          winblend = 30,
-          margin = { 0, 0, 0, 0 },
-          padding = { 1, 1, 1, 1 },
-        },
-      }
-      wk.register {
-        ["<leader>f"] = { name = "[F]ind" },
-        ["<leader>l"] = { name = "[L]sp" },
-        ["<leader>g"] = { name = "[G]it" },
-        ["<leader>u"] = { name = "[U]ser Interface" },
-        ["<leader>ug"] = { name = "[G]it" },
-        ["<leader>e"] = { name = "[E]xplorer" },
-        ["<leader>t"] = { name = "[T]erminal" },
-        ["<leader>d"] = { name = "[D]debug" },
-        ["<leader>b"] = { name = "[B]buffer" },
+      -- wk.setup {
+      --   win = {
+      --     -- winblend = 30,
+      --     padding = { 1, 1 },
+      --   },
+      -- }
+      wk.add {
+        { "<leader>f", group = "[F]ind" },
+        { "<leader>l", group = "[L]sp" },
+        { "<leader>g", group = "[G]it" },
+        { "<leader>u", group = "[U]ser Interface" },
+        { "<leader>ug", group = "[G]it" },
+        { "<leader>e", group = "[E]xplorer" },
+        { "<leader>t", group = "[T]erminal" },
+        { "<leader>d", group = "[D]debug" },
+        { "<leader>b", group = "[B]buffer" },
 
-        ["<leader>c"] = { name = "[C]ode" },
-        ["<leader>cD"] = { name = "[D]ocs" },
+        { "<leader>c", name = "[C]ode" },
+        { "<leader>cD", name = "[D]ocs" },
       }
     end,
   },

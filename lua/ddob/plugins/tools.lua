@@ -74,9 +74,15 @@ return {
     config = function()
       require("colorizer").setup {
         user_default_options = {
-          names = false
-        }
+          names = false,
+        },
       }
     end,
+  },
+
+  {
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {},
   },
 }

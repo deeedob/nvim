@@ -61,18 +61,18 @@ autocmd("BufReadPost", {
 })
 
 -- Sync syntax when not editing text
-autocmd("CursorHold", {
-  callback = function(event)
-    if vim.api.nvim_get_option_value("syntax", { buf = event.buf }) ~= "" then
-      vim.api.nvim_command "syntax sync fromstart"
-    end
-
-    if vim.lsp.semantic_tokens then
-      vim.lsp.semantic_tokens.force_refresh(event.buf)
-    end
-  end,
-  group = augroup,
-})
+-- autocmd("CursorHold", {
+--   callback = function(event)
+--     if vim.api.nvim_get_option_value("syntax", { buf = event.buf }) ~= "" then
+--       vim.api.nvim_command "syntax sync fromstart"
+--     end
+--
+--     if vim.lsp.semantic_tokens then
+--       vim.lsp.semantic_tokens.force_refresh(event.buf)
+--     end
+--   end,
+--   group = augroup,
+-- })
 
 autocmd("RecordingEnter", {
   group = augroup,

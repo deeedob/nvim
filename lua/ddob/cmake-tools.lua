@@ -40,7 +40,7 @@ require("cmake-tools").setup {
     opts = {
       direction = "horizontal",
       auto_scroll = true,
-      close_on_exit = true,
+      close_on_exit = false,
     },
   },
   cmake_runner = {

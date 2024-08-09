@@ -8,7 +8,7 @@ return {
         keymaps = {
           ["g?"] = "actions.show_help",
           ["<CR>"] = "actions.select",
-          ["<C-s>"] = { "actions.select_split", opts = { vertical = true } },
+          ["<C-i>"] = { "actions.select_split", opts = { vertical = true } },
           ["<C-o>"] = { "actions.select_split", opts = { horizontal = true } },
           ["<C-t>"] = { "actions.select_split", opts = { tab = true } },
           ["<C-p>"] = "actions.preview",

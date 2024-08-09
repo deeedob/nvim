@@ -31,8 +31,8 @@ require("lazy").setup({ import = "ddob/plugins" }, {
 
 require("ddob.utils").resetTerminalBg()
 
-vim.cmd [[
-  if has('nvim')
-    let $GIT_EDITOR = 'nvr -cc split --remote-wait'
-  endif
-]]
+vim.cmd([[
+    if has('nvim')
+        let $GIT_EDITOR = "nvr -cc tabedit --remote-wait +'set bufhidden=wipe'"
+    endif
+]])
