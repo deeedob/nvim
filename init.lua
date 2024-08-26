@@ -33,6 +33,7 @@ require("ddob.utils").resetTerminalBg()
 
 vim.cmd([[
     if has('nvim')
+        " make sure that GIT_EDITOR is not set before here
         let $GIT_EDITOR = "nvr -cc tabedit --remote-wait +'set bufhidden=wipe'"
     endif
 ]])

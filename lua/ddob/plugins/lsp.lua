@@ -67,12 +67,7 @@ return {
         qmlls = {
           manual_install = true,
           cmd = {
-            "qmlls",
-            "-b",
-            (function()
-              -- return require("cmake-tools").get_build_directory().filename
-              return "/home/ddob/qt/qt6/qtdeclarative/examples/quickcontrols/filesystemexplorer/cmake-build/Debug"
-            end)(),
+            "qmlls"
           },
           filetypes = { "qml" },
           single_file_support = true,
@@ -129,6 +124,7 @@ return {
         "markdownlint",
         "cmakelint",
         "cmakelang",
+        "clang-format"
       }
 
       vim.list_extend(ensure_installed, servers_to_install)

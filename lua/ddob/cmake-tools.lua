@@ -16,13 +16,15 @@ vim.keymap.set(
   { desc = "[w]ipe Build Dir", remap = true }
 )
 
+local nproc = tonumber(io.popen("nproc"):read("*n")) - 1
+
 require("cmake-tools").setup {
   cmake_command = "cmake",
   ctest_command = "ctest",
   cmake_use_preset = true,
   cmake_regenerate_on_save = true,
   -- cmake_generate_options = { "" },
-  cmake_build_options = { "-j10" },
+  cmake_build_options = { "-j" .. tostring(nproc) },
   cmake_build_directory = "cmake-build/${variant:buildType}",
   cmake_soft_link_compile_commands = false,
   cmake_compile_commands_from_lsp = true,
@@ -39,16 +41,22 @@ require("cmake-tools").setup {
     name = "toggleterm",
     opts = {
       direction = "horizontal",
-      auto_scroll = true,
       close_on_exit = false,
+      auto_scroll = false,
+      scroll_on_error = true,
+      auto_focus = false,
+      focus_on_error = false,
     },
   },
   cmake_runner = {
     name = "toggleterm",
     opts = {
       direction = "horizontal",
-      auto_scroll = false,
       close_on_exit = false,
+      auto_scroll = false,
+      scroll_on_error = true,
+      auto_focus = false,
+      focus_on_error = true,
     },
   },
   cmake_notifications = {
