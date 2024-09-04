@@ -48,26 +48,27 @@ return {
           cmd = {
             "clangd",
             "--all-scopes-completion",
-            "--background-index",
             "--clang-tidy",
             "--header-insertion=never",
-            "--header-insertion-decorators",
             "--completion-style=detailed", -- or bundled
             "--header-insertion=iwyu",
-            "--header-insertion-decorators",
             "--function-arg-placeholders",
-            "--cross-file-rename",
             "--enable-config", -- uses ~/.local/clangd/config.yaml
-            "--query-driver=/usr/bin/clang++,/usr/bin/g++",
-            "--rename-file-limit=400",
+            -- "--query-driver=/usr/bin/clang++,/usr/bin/g++",
+            -- clangd performance
+            "-j=16",
+            "--malloc-trim",
+            "--background-index",
             "--pch-storage=memory", -- increases memory usage but improves performance, memory, disk
-            "-j=4",
+            -- stash
+            -- "--cross-file-rename", got removed? without explanation?!
+            -- "--rename-file-limit=400",
           },
         },
         qmlls = {
           manual_install = true,
           cmd = {
-            "qmlls"
+            "qmlls",
           },
           filetypes = { "qml" },
           single_file_support = true,
@@ -100,9 +101,7 @@ return {
             },
           },
         },
-        pyright = {
-
-        },
+        pyright = {},
       }
 
       local servers_to_install = vim.tbl_filter(function(key)
@@ -124,7 +123,7 @@ return {
         "markdownlint",
         "cmakelint",
         "cmakelang",
-        "clang-format"
+        "clang-format",
       }
 
       vim.list_extend(ensure_installed, servers_to_install)
@@ -303,10 +302,12 @@ return {
         },
         formatters = {
           clang_format = {
-            "-assume-filename",
-            "$FILENAME",
-            "-style",
-            default_clang,
+            args = {
+              "--assume-filename",
+              "$FILENAME",
+              "--style",
+              default_clang,
+            },
           },
         },
         formatters_by_ft = {

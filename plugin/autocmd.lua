@@ -24,8 +24,15 @@ autocmd("BufWinEnter", {
   command = "setlocal formatoptions-=o",
 })
 
+autocmd("VimResized", {
+  group = augroup,
+  callback = function ()
+    vim.cmd("wincmd =")
+  end
+})
+
 -- Check if buffers changes upon regaining focus
-vim.api.nvim_create_autocmd(
+autocmd(
   { "FocusGained", "VimResume" },
   { command = "checktime", group = augroup }
 )

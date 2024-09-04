@@ -83,6 +83,7 @@ opt.virtualedit = "block"
 opt.autowrite = true
 
 vim.lsp.set_log_level("OFF")
+-- vim.lsp.log.set_format_func(vim.inspect) -- pretty print log
 
 if _G['nvim >= 0.10'] then
 	vim.api.nvim_set_option_value('smoothscroll', true, {})

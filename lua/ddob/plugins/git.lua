@@ -118,7 +118,7 @@ return {
     "tpope/vim-fugitive",
     cmd = "G",
     keys = {
-      { "<leader>gf", ":vertical G<cr>", desc = "Fugitive" },
+      { "<leader>gf", ":vertical Git | vertical resize 70<cr>", desc = "Fugitive" },
     },
   },
 
