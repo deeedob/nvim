@@ -24,7 +24,7 @@ require("cmake-tools").setup {
   cmake_use_preset = true,
   cmake_regenerate_on_save = true,
   -- cmake_generate_options = { "" },
-  cmake_build_options = { "-j" .. tostring(nproc) },
+  cmake_build_options = { "-j " .. tostring(nproc) },
   cmake_build_directory = "cmake-build/${variant:buildType}",
   cmake_soft_link_compile_commands = false,
   cmake_compile_commands_from_lsp = true,

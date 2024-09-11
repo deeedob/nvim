@@ -3,6 +3,7 @@ local data = assert(vim.fn.stdpath "data") --[[@as string]]
 require("telescope").setup {
   defaults = {
     initial_mode = "insert",
+    file_ignore_patterns = { ".git/", "%.svg", "%.png", "%.jpeg", "%.jpg" },
     history = {
       path = vim.fs.joinpath(data, "telescope_history.sqlite3"),
       limit = 100,

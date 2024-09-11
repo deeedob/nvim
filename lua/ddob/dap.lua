@@ -187,6 +187,22 @@ require("mason-nvim-dap").setup {
       local conf = require("telescope.config").values
       local actions = require "telescope.actions"
       local action_state = require "telescope.actions.state"
+
+      local initCmd = function()
+        local commands = {}
+        local sources =
+          { vim.env.HOME .. "/.lldbinit", vim.fn.getcwd() .. "/.lldbinit" }
+        for idx, source in ipairs(sources) do
+          local file = io.open(source, "r")
+          if file then
+            local command = "command source " .. source
+            table.insert(commands, command)
+            file:close()
+          end
+        end
+        print("cmd ", commands)
+        return commands
+      end
       config.configurations = {
         {
           name = "LLDB: Attach",
@@ -195,6 +211,7 @@ require("mason-nvim-dap").setup {
           pid = require("dap.utils").pick_process,
           args = {},
           stopOnEntry = false,
+          initCommands = initCmd,
           env = function()
             local variables = {}
             for k, v in pairs(vim.fn.environ()) do
@@ -208,6 +225,8 @@ require("mason-nvim-dap").setup {
           type = "codelldb",
           request = "launch",
           cwd = "${workspaceFolder}",
+          initCommands = initCmd,
+
           program = function()
             return coroutine.create(function(coro)
               local opts = {}

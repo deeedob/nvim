@@ -39,7 +39,8 @@ return {
   },
 
   {
-    "Civitasv/cmake-tools.nvim",
+    "deeedob/cmake-tools.nvim",
+    branch = "toggleterm",
     init = function()
       local local_cmake = "CMakeLists.txt"
       -- async determine a possible project dir
