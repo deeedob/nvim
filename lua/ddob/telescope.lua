@@ -8,6 +8,16 @@ require("telescope").setup {
       path = vim.fs.joinpath(data, "telescope_history.sqlite3"),
       limit = 100,
     },
+    vimgrep_arguments = {
+      "rg",
+      "--color=never",
+      "--no-heading",
+      "--with-filename",
+      "--line-number",
+      "--column",
+      "--smart-case",
+      "--hidden"
+    },
   },
   extensions = {
     wrap_results = true,
@@ -19,9 +29,9 @@ require("telescope").setup {
   },
   pickers = {
     find_files = {
-      hidden = true
-    }
-  }
+      hidden = true,
+    },
+  },
 }
 
 pcall(require("telescope").load_extension, "fzf")
