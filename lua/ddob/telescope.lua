@@ -4,10 +4,6 @@ require("telescope").setup {
   defaults = {
     initial_mode = "insert",
     file_ignore_patterns = { ".git/", "%.svg", "%.png", "%.jpeg", "%.jpg" },
-    history = {
-      path = vim.fs.joinpath(data, "telescope_history.sqlite3"),
-      limit = 100,
-    },
     vimgrep_arguments = {
       "rg",
       "--color=never",
@@ -16,7 +12,7 @@ require("telescope").setup {
       "--line-number",
       "--column",
       "--smart-case",
-      "--hidden"
+      "--hidden",
     },
   },
   extensions = {
@@ -38,6 +34,7 @@ pcall(require("telescope").load_extension, "fzf")
 pcall(require("telescope").load_extension, "smart_history")
 pcall(require("telescope").load_extension, "ui-select")
 pcall(require("telescope").load_extension, "undo")
+pcall(require("telescope").load_extension, "frecency")
 
 local builtin = require "telescope.builtin"
 
@@ -106,12 +103,11 @@ end, { desc = "[F]iles (current)" })
 vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "[b]uffers" })
 vim.keymap.set("n", "<leader>fr", builtin.resume, { desc = "[r]esume" })
 
-vim.keymap.set(
-  "n",
-  "<leader>fR",
-  builtin.oldfiles,
-  { desc = "[R]ecently opened" }
-)
+vim.keymap.set("n", "<leader>fR", function()
+  require("telescope").extensions.frecency.frecency {
+      workspace = "CWD"
+  }
+end, { desc = "[R]ecently opened" })
 
 vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "[h]elp" })
 vim.keymap.set("n", "<leader>fH", function()

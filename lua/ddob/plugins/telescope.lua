@@ -12,7 +12,7 @@ return {
       "debugloop/telescope-undo.nvim",
       "nvim-telescope/telescope-smart-history.nvim",
       "nvim-telescope/telescope-ui-select.nvim",
-      "kkharji/sqlite.lua",
+      "nvim-telescope/telescope-frecency.nvim"
     },
     config = function()
       require "ddob.telescope"
