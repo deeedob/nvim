@@ -102,6 +102,7 @@ return {
           },
         },
         pyright = {},
+        typst_lsp = {}
       }
 
       local servers_to_install = vim.tbl_filter(function(key)
@@ -144,6 +145,7 @@ return {
 
       local disable_semantic_tokens = {
         lua = true,
+        typst = true,
       }
 
       vim.api.nvim_create_autocmd("LspAttach", {
