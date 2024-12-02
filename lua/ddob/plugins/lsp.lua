@@ -102,7 +102,8 @@ return {
           },
         },
         pyright = {},
-        typst_lsp = {}
+        typst_lsp = {},
+        bufls = {},
       }
 
       local servers_to_install = vim.tbl_filter(function(key)
