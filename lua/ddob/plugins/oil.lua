@@ -40,6 +40,16 @@ return {
 
       -- Open parent directory in floating window
       vim.keymap.set("n", "<leader>-", require("oil").toggle_float)
+      vim.keymap.set("n", "<leader>_", function()
+        local cmake = nil
+        if package.loaded["cmake-tools"] then
+          cmake = require "cmake-tools"
+        end
+        if cmake == nil then
+          return
+        end
+        require("oil").open(cmake.get_build_directory().filename)
+      end)
     end,
   },
 }
