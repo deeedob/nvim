@@ -22,6 +22,9 @@ require("telescope").setup {
     ["ui-select"] = {
       require("telescope.themes").get_dropdown {},
     },
+    frecency = {
+      db_safe_mode = false,
+    },
   },
   pickers = {
     find_files = {
@@ -31,7 +34,6 @@ require("telescope").setup {
 }
 
 pcall(require("telescope").load_extension, "fzf")
-pcall(require("telescope").load_extension, "smart_history")
 pcall(require("telescope").load_extension, "ui-select")
 pcall(require("telescope").load_extension, "undo")
 pcall(require("telescope").load_extension, "frecency")
@@ -92,7 +94,11 @@ vim.keymap.set("n", "<leader>fT", function()
   }
 end, { desc = "words by F[T] (global)" })
 
-vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "files (root)" })
+vim.keymap.set("n", "<leader>ff", function()
+  require("telescope").extensions.frecency.frecency {
+    workspace = "CWD",
+  }
+end, { desc = "files (root)" })
 
 vim.keymap.set("n", "<leader>fF", function()
   builtin.find_files {
@@ -102,12 +108,6 @@ end, { desc = "[F]iles (current)" })
 
 vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "[b]uffers" })
 vim.keymap.set("n", "<leader>fr", builtin.resume, { desc = "[r]esume" })
-
-vim.keymap.set("n", "<leader>fR", function()
-  require("telescope").extensions.frecency.frecency {
-      workspace = "CWD"
-  }
-end, { desc = "[R]ecently opened" })
 
 vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "[h]elp" })
 vim.keymap.set("n", "<leader>fH", function()
@@ -122,7 +122,7 @@ vim.keymap.set("n", "<leader>fc", function()
 end, { desc = "[c]onfig (user)" })
 vim.keymap.set("n", "<leader>fC", function()
   return builtin.find_files {
-    cwd = vim.fs.joinpath(vim.fn.stdpath "data", "lazy"),
+    cwd = vim.fs.joinpath(data, "lazy"),
   }
 end, { desc = "[c]onfig (lazy)" })
 

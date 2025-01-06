@@ -38,14 +38,14 @@ autocmd(
 )
 
 -- Fancy yank
-autocmd("TextYankPost", {
-  group = augroup,
-  callback = function()
-    vim.highlight.on_yank {
-      timeout = 175,
-    }
-  end,
-})
+-- autocmd("TextYankPost", {
+--   group = augroup,
+--   callback = function()
+--     vim.highlight.on_yank {
+--       timeout = 175,
+--     }
+--   end,
+-- })
 
 -- Go to the last loc when opening a buffer
 autocmd("BufReadPost", {

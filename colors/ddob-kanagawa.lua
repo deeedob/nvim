@@ -154,15 +154,15 @@ local theme = {
     pmenu = {
       fg = palette.fujiWhite,
       fg_sel = "none",
-      bg = palette.waveBlue1,
-      bg_sel = palette.waveBlue2,
-      bg_thumb = palette.waveBlue2,
-      bg_sbar = palette.waveBlue1,
+      bg = palette.sumiInk2,
+      bg_sel = palette.sumiInk5,
+      bg_thumb = palette.springViolet1,
+      bg_sbar = palette.sumiInk5,
     },
 
     float = {
-      fg = palette.oldWhite,
-      bg = palette.dragonBlack0,
+      fg = palette.fujiWhite,
+      bg = palette.sumiInk2,
       fg_border = palette.sumiInk6,
       bg_border = palette.dragonBlack0,
     },
@@ -349,7 +349,7 @@ local editorgroups = {
   FloatBorder = { fg = theme.ui.float.fg_border, bg = theme.ui.float.bg_border },
   FloatTitle = {
     fg = theme.ui.special,
-    bg = theme.ui.float.bg_border,
+    bg = theme.ui.float.bg,
     bold = true,
   },
   FloatFooter = { fg = theme.ui.nontext, bg = theme.ui.float.bg_border },
@@ -836,6 +836,11 @@ local plugin_groups = {
   -- CmpItemKindUnit = {},
   -- CmpItemKindEvent = {},
   -- CmpItemKindColor = {},
+  BlinkCmpItemIdx = { link = "Comment" },
+  BlinkCmpSignatureHelpBorder = { link = "@keyword" },
+  BlinkCmpMenuBorder = { link = "@keyword" },
+  BlinkCmpDocBorder = { link = "@keyword" },
+
 
   -- IndentBlankline
   IndentBlanklineChar = { fg = theme.ui.whitespace },

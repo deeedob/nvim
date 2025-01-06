@@ -46,6 +46,7 @@ require("cmake-tools").setup {
       scroll_on_error = true,
       auto_focus = false,
       focus_on_error = false,
+      singleton = true
     },
   },
   cmake_runner = {
@@ -57,6 +58,7 @@ require("cmake-tools").setup {
       scroll_on_error = true,
       auto_focus = false,
       focus_on_error = true,
+      singleton = true
     },
   },
   cmake_notifications = {

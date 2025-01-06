@@ -10,9 +10,8 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "debugloop/telescope-undo.nvim",
-      "nvim-telescope/telescope-smart-history.nvim",
       "nvim-telescope/telescope-ui-select.nvim",
-      "nvim-telescope/telescope-frecency.nvim"
+      "nvim-telescope/telescope-frecency.nvim",
     },
     config = function()
       require "ddob.telescope"

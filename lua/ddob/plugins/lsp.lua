@@ -1,3 +1,22 @@
+local function find_qmlls()
+  local paths = {
+    "~/Qt/qt6/build/clang-release/qtbase/bin",
+    "~/Qt/qt6/build/clang-debug/qtbase/bin",
+    "~/Qt/qt6/build/gcc-release/qtbase/bin",
+    "~/Qt/qt6/build/gcc-debug/qtbase/bin",
+    "/lib/qt6/bin",
+  }
+
+  for _, path in ipairs(paths) do
+    local qmlls_path = vim.fn.expand(path .. "/qmlls")
+    if vim.fn.filereadable(qmlls_path) == 1 then
+      return qmlls_path
+    end
+  end
+
+  error("qmlls executable not found in the specified paths")
+end
+
 return {
   {
     "neovim/nvim-lspconfig",
@@ -23,13 +42,6 @@ return {
         --   types = true,
         -- },
       }
-
-      local capabilities = nil
-      if pcall(require, "cmp_nvim_lsp") then
-        capabilities = require("cmp_nvim_lsp").default_capabilities()
-      end
-
-      local lspconfig = require "lspconfig"
 
       local servers = {
         clangd = {
@@ -65,58 +77,53 @@ return {
             -- "--rename-file-limit=400",
           },
         },
-        qmlls = {
-          manual_install = true,
-          cmd = {
-            "qmlls",
-          },
-          filetypes = { "qml" },
-          single_file_support = true,
-        },
-        neocmake = true,
-        bashls = true,
+        neocmake = {},
+        bashls = {},
         lua_ls = {
           server_capabilities = {
             semanticTokensProvider = vim.NIL,
           },
         },
-        rust_analyzer = true,
-        marksman = true,
-        jsonls = {
-          settings = {
-            json = {
-              schemas = require("schemastore").json.schemas(),
-              validate = { enable = true },
-            },
+        qmlls = {
+          manual_install = true,
+          cmd = {
+            find_qmlls()
           },
+          filetypes = { "qml" },
+          single_file_support = true,
         },
-        yamlls = {
-          settings = {
-            yaml = {
-              schemaStore = {
-                enable = false,
-                url = "",
-              },
-              schemas = require("schemastore").yaml.schemas(),
-            },
-          },
-        },
-        pyright = {},
-        typst_lsp = {},
-        bufls = {},
-        html = {},
+        -- rust_analyzer = true,
+        -- marksman = true,
+        -- jsonls = {
+        --   settings = {
+        --     json = {
+        --       schemas = require("schemastore").json.schemas(),
+        --       validate = { enable = true },
+        --     },
+        --   },
+        -- },
+        -- yamlls = {
+        --   settings = {
+        --     yaml = {
+        --       schemaStore = {
+        --         enable = false,
+        --         url = "",
+        --       },
+        --       schemas = require("schemastore").yaml.schemas(),
+        --     },
+        --   },
+        -- },
+        -- pyright = {},
+        -- typst_lsp = {},
+        -- bufls = {},
+        -- html = {},
       }
 
-      local servers_to_install = vim.tbl_filter(function(key)
-        local t = servers[key]
-        if type(t) == "table" then
-          return not t.manual_install
-        else
-          return t
-        end
-      end, vim.tbl_keys(servers))
+      local disable_semantic_tokens_for_ft = {
+        lua = true,
+        typst = true,
+      }
 
-      require("mason").setup()
       local ensure_installed = {
         "stylua",
         "shellcheck",
@@ -129,26 +136,29 @@ return {
         "clang-format",
       }
 
+      local servers_to_install = vim.tbl_filter(function(key)
+        local t = servers[key]
+        if type(t) == "table" then
+          return not t.manual_install
+        else
+          return t
+        end
+      end, vim.tbl_keys(servers))
       vim.list_extend(ensure_installed, servers_to_install)
+
+      require("mason").setup()
       require("mason-tool-installer").setup {
         ensure_installed = ensure_installed,
       }
 
-      for name, config in pairs(servers) do
+      local lspconfig = require "lspconfig"
+      for server, config in pairs(servers) do
         if config == true then
           config = {}
         end
-        config = vim.tbl_deep_extend("force", {}, {
-          capabilities = capabilities,
-        }, config)
-
-        lspconfig[name].setup(config)
+        config.capabilities = require('blink.cmp').get_lsp_capabilities(config.capabilities)
+        lspconfig[server].setup(config)
       end
-
-      local disable_semantic_tokens = {
-        lua = true,
-        typst = true,
-      }
 
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
@@ -238,7 +248,7 @@ return {
           )
 
           local filetype = vim.bo[bufnr].filetype
-          if disable_semantic_tokens[filetype] then
+          if disable_semantic_tokens_for_ft[filetype] then
             client.server_capabilities.semanticTokensProvider = nil
           end
 
