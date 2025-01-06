@@ -1,10 +1,32 @@
 return {
   {
+    "folke/lazydev.nvim",
+    ft = "lua",
+    opts = {
+      library = {
+        -- See the configuration section for more details
+        -- Load luvit types when the `vim.uv` word is found
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+      },
+    },
+  },
+  {
     "saghen/blink.cmp",
     lazy = false,
     dependencies = {
-      { "rafamadriz/friendly-snippets" },
-      { "L3MON4D3/LuaSnip", version = "v2.*" },
+      {
+        "L3MON4D3/LuaSnip",
+        version = "v2.*",
+        config = function()
+          for _, ft_path in
+            ipairs(
+              vim.api.nvim_get_runtime_file("lua/custom/snippets/*.lua", true)
+            )
+          do
+            loadfile(ft_path)()
+          end
+        end,
+      },
     },
     version = "v0.*",
     opts = {
@@ -14,12 +36,12 @@ return {
 
         ["<C-n>"] = { "select_next", "fallback" },
         ["<C-p>"] = { "select_prev", "fallback" },
-        -- ["<S-n>"] = { "snippet_forward", "fallback" },
-        -- ["<S-p>"] = { "snippet_backward", "fallback" },
+        ["<C-k>"] = { "snippet_forward", "fallback" },
+        ["<C-j>"] = { "snippet_backward", "fallback" },
 
         ["<C-i>"] = { "accept", "fallback" },
-        ["<C-j>"] = { "scroll_documentation_down", "fallback" },
-        ["<C-k>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-d>"] = { "scroll_documentation_down", "fallback" },
+        ["<C-u>"] = { "scroll_documentation_up", "fallback" },
 
         ["<A-1>"] = {
           function(cmp)
@@ -68,10 +90,24 @@ return {
         },
       },
       appearance = {
-        -- use_nvim_cmp_as_default = true,
+        use_nvim_cmp_as_default = false,
         nerd_font_variant = "mono",
       },
+
       completion = {
+        accept = {
+          auto_brackets = { enabled = true },
+        },
+
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 250,
+          treesitter_highlighting = true,
+          window = {
+            border = "rounded",
+          },
+        },
+
         menu = {
           border = "rounded",
           draw = {
@@ -92,13 +128,8 @@ return {
             },
           },
         },
-        documentation = {
-          auto_show = true,
-          window = {
-            border = "rounded"
-          }
-        },
       },
+
       snippets = {
         expand = function(snippet)
           require("luasnip").lsp_expand(snippet)
@@ -113,11 +144,43 @@ return {
           require("luasnip").jump(direction)
         end,
       },
+
       sources = {
-        default = { "lsp", "path", "luasnip", "buffer" },
+
+        default = function(ctx)
+          local success, node = pcall(vim.treesitter.get_node)
+          if
+            success
+            and node
+            and vim.tbl_contains(
+              { "comment", "line_comment", "block_comment" },
+              node:type()
+            )
+          then
+            return { "buffer" }
+          else
+            return { "lazydev", "lsp", "path", "luasnip", "buffer" }
+          end
+        end,
+
+        providers = {
+          path = {
+            min_keyword_length = 0,
+          },
+          buffer = {
+            min_keyword_length = 5,
+          },
+          lazydev = {
+            name = "LazyDev",
+            module = "lazydev.integrations.blink",
+            score_offset = 100,
+          },
+        },
       },
+
       signature = {
         enabled = true,
+        window = { border = "rounded" },
       },
     },
     opts_extended = { "sources.default" },

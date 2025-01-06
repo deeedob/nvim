@@ -1,9 +1,9 @@
 local function find_qmlls()
   local paths = {
-    "~/Qt/qt6/build/clang-release/qtbase/bin",
-    "~/Qt/qt6/build/clang-debug/qtbase/bin",
     "~/Qt/qt6/build/gcc-release/qtbase/bin",
+    "~/Qt/qt6/build/clang-release/qtbase/bin",
     "~/Qt/qt6/build/gcc-debug/qtbase/bin",
+    "~/Qt/qt6/build/clang-debug/qtbase/bin",
     "/lib/qt6/bin",
   }
 
@@ -21,7 +21,6 @@ return {
   {
     "neovim/nvim-lspconfig",
     dependencies = {
-      "folke/neodev.nvim",
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
       "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -36,13 +35,6 @@ return {
       "folke/trouble.nvim",
     },
     config = function()
-      require("neodev").setup {
-        -- library = {
-        --   plugins = { "nvim-dap-ui" },
-        --   types = true,
-        -- },
-      }
-
       local servers = {
         clangd = {
           init_options = {
