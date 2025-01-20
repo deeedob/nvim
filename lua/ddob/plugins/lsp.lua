@@ -14,7 +14,7 @@ local function find_qmlls()
     end
   end
 
-  error("qmlls executable not found in the specified paths")
+  error "qmlls executable not found in the specified paths"
 end
 
 return {
@@ -79,36 +79,36 @@ return {
         qmlls = {
           manual_install = true,
           cmd = {
-            find_qmlls()
+            find_qmlls(),
           },
           filetypes = { "qml" },
           single_file_support = true,
         },
         -- rust_analyzer = true,
         -- marksman = true,
-        -- jsonls = {
-        --   settings = {
-        --     json = {
-        --       schemas = require("schemastore").json.schemas(),
-        --       validate = { enable = true },
-        --     },
-        --   },
-        -- },
-        -- yamlls = {
-        --   settings = {
-        --     yaml = {
-        --       schemaStore = {
-        --         enable = false,
-        --         url = "",
-        --       },
-        --       schemas = require("schemastore").yaml.schemas(),
-        --     },
-        --   },
-        -- },
-        -- pyright = {},
+        jsonls = {
+          settings = {
+            json = {
+              schemas = require("schemastore").json.schemas(),
+              validate = { enable = true },
+            },
+          },
+        },
+        yamlls = {
+          settings = {
+            yaml = {
+              schemaStore = {
+                enable = false,
+                url = "",
+              },
+              schemas = require("schemastore").yaml.schemas(),
+            },
+          },
+        },
+        pyright = {},
         -- typst_lsp = {},
         -- bufls = {},
-        -- html = {},
+        html = {},
       }
 
       local disable_semantic_tokens_for_ft = {
@@ -148,7 +148,8 @@ return {
         if config == true then
           config = {}
         end
-        config.capabilities = require('blink.cmp').get_lsp_capabilities(config.capabilities)
+        config.capabilities =
+          require("blink.cmp").get_lsp_capabilities(config.capabilities)
         lspconfig[server].setup(config)
       end
 
@@ -198,7 +199,7 @@ return {
           vim.keymap.set(
             "n",
             "gr",
-            vim.lsp.buf.references,
+            "<cmd>Trouble lsp_references focus=true<cr>",
             { desc = "Goto [R]eferences", buffer = 0 }
           )
 

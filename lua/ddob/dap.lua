@@ -256,6 +256,22 @@ require("mason-nvim-dap").setup {
       }
       require("mason-nvim-dap").default_setup(config)
     end,
+    -- TODO: Doesn't work?
+    -- lua = function(config)
+    --   config.configurations = {
+    --     {
+    --       name = "Attach to running Neovim instance",
+    --       type = "nlua",
+    --       request = "attach",
+    --     },
+    --   }
+    --   config.adapters = {
+    --     type = "server",
+    --     host = config.host or "127.0.0.1",
+    --     port = config.port or 8086,
+    --   }
+    --   require("mason-nvim-dap").default_setup(config)
+    -- end,
   },
   ensure_installed = {
     "codelldb",
@@ -263,3 +279,20 @@ require("mason-nvim-dap").setup {
     "bash-debug-adapter",
   },
 }
+
+dap.configurations.lua = {
+  {
+    type = "nlua",
+    request = "attach",
+    name = "Attach to running Neovim instance",
+    port = 8086,
+  },
+}
+
+dap.adapters.nlua = function(callback, config)
+  callback {
+    type = "server",
+    host = config.host or "127.0.0.1",
+    port = config.port or 8086,
+  }
+end
