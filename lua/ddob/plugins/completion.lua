@@ -120,7 +120,6 @@ return {
             components = {
               item_idx = {
                 text = function(ctx)
-                  print(vim.inspect(ctx.label_detail))
                   return tostring(ctx.idx)
                 end,
                 highlight = "BlinkCmpItemIdx",

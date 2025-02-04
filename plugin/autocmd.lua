@@ -1,10 +1,26 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup("config", { clear = false })
 
+vim.filetype.add {
+  extension = {
+    vert = "glsl",
+    frag = "glsl"
+  },
+}
+
 -- Quick close
 autocmd("FileType", {
   group = augroup,
-  pattern = { "help", "man", "lspinfo", "checkhealth", "qf", "query", "notify", "dap-float" },
+  pattern = {
+    "help",
+    "man",
+    "lspinfo",
+    "checkhealth",
+    "qf",
+    "query",
+    "notify",
+    "dap-float",
+  },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
     vim.keymap.set(
@@ -26,9 +42,9 @@ autocmd("BufWinEnter", {
 
 autocmd("VimResized", {
   group = augroup,
-  callback = function ()
-    vim.cmd("wincmd =")
-  end
+  callback = function()
+    vim.cmd "wincmd ="
+  end,
 })
 
 -- Check if buffers changes upon regaining focus

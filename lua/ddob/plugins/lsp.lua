@@ -109,6 +109,7 @@ return {
         -- typst_lsp = {},
         -- bufls = {},
         html = {},
+        glsl_analyzer = {},
       }
 
       local disable_semantic_tokens_for_ft = {
