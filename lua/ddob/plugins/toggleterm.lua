@@ -35,6 +35,25 @@ return {
       "<cmd>ToggleTerm direction=float<cr>",
       desc = "Terminal current file",
     },
+    {
+      "<leader>tb",
+      function()
+        local cmake = require("cmake-tools")
+        if cmake.is_cmake_project() then
+          local build_dir = cmake.get_build_directory()
+          if build_dir and build_dir ~= "" then
+            local tterm = require("toggleterm.terminal").Terminal
+            local term = tterm:new({ cmd = "cd " .. build_dir .. " && $SHELL", direction = "horizontal", size = 15 })
+            term:toggle()
+          else
+            vim.notify("CMake build directory not found!", vim.log.levels.WARN)
+          end
+        else
+          vim.notify("Not a CMake project!", vim.log.levels.WARN)
+        end
+      end,
+      desc = "Terminal Build Directory",
+    },
     { "<leader>ts", "<cmd>TermSelect<cr>", desc = "Select Terminal" },
     {
       "<leader>ta",
