@@ -12,7 +12,6 @@ return {
   },
   {
     "saghen/blink.cmp",
-    lazy = false,
     dependencies = {
       {
         "L3MON4D3/LuaSnip",
@@ -28,7 +27,10 @@ return {
         end,
       },
     },
-    version = "v0.*",
+    lazy = false,
+    version = "*",
+    ---@module 'blink.cmp'
+    ---@type blink.cmp.Config
     opts = {
       keymap = {
         ["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
@@ -96,7 +98,7 @@ return {
 
       completion = {
         accept = {
-          auto_brackets = { enabled = true },
+          auto_brackets = { enabled = false },
         },
 
         documentation = {
@@ -130,7 +132,7 @@ return {
       },
 
       snippets = {
-        preset = "luasnip"
+        preset = "luasnip",
       },
 
       sources = {
@@ -153,10 +155,32 @@ return {
 
         providers = {
           path = {
-            min_keyword_length = 0,
+            opts = {
+              trailing_slash = true,
+              label_trailing_slash = true,
+              get_cwd = function(context)
+                return vim.fn.expand(("#%d:p:h"):format(context.bufnr))
+              end,
+              show_hidden_files_by_default = true,
+            },
           },
           buffer = {
-            min_keyword_length = 5,
+            name = "Buffer",
+            module = "blink.cmp.sources.buffer",
+            opts = {
+              -- default to all visible buffers
+              get_bufnrs = function()
+                return vim
+                  .iter(vim.api.nvim_list_wins())
+                  :map(function(win)
+                    return vim.api.nvim_win_get_buf(win)
+                  end)
+                  :filter(function(buf)
+                    return vim.bo[buf].buftype ~= "nofile"
+                  end)
+                  :totable()
+              end,
+            },
           },
           lazydev = {
             name = "LazyDev",

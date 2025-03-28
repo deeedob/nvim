@@ -41,6 +41,12 @@ return {
             -- clangdFileStatus = true,
             usePlaceholders = true,
             completeUnimported = true,
+            clangdFileStatus = true,
+          },
+          settings = {
+            clangd = {
+              serverCompletionRanking = false
+            }
           },
           filetypes = { "c", "cpp", "objc", "objcpp" },
           on_new_config = function(new_config, new_cwd)

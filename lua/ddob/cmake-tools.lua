@@ -23,7 +23,7 @@ require("cmake-tools").setup {
   ctest_command = "ctest",
   cmake_use_preset = true,
   cmake_regenerate_on_save = false,
-  -- cmake_generate_options = { "" },
+  cmake_generate_options = { "-DCMAKE_EXPORT_COMPILE_COMMANDS=1", "-DQT_QML_GENERATE_QMLLS_INI=1" },
   cmake_build_options = { "-j " .. tostring(nproc) },
   cmake_build_directory = "cmake-build/${variant:buildType}",
   cmake_soft_link_compile_commands = false,

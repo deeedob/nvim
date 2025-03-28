@@ -1,35 +1,35 @@
-require("dapui").setup {
-  layouts = {
-    {
-      elements = {
-        {
-          id = "scopes",
-          size = 0.45,
-        },
-        {
-          id = "stacks",
-          size = 0.45,
-        },
-        {
-          id = "breakpoints",
-          size = 0.1,
-        },
-      },
-      position = "left",
-      size = 35,
-    },
-    {
-      elements = {
-        {
-          id = "console",
-          size = 1.0,
-        },
-      },
-      position = "bottom",
-      size = 10,
-    },
-  },
-}
+require("dapui").setup {}
+--   layouts = {
+--     {
+--       elements = {
+--         {
+--           id = "scopes",
+--           size = 0.45,
+--         },
+--         {
+--           id = "stacks",
+--           size = 0.45,
+--         },
+--         {
+--           id = "breakpoints",
+--           size = 0.1,
+--         },
+--       },
+--       position = "left",
+--       size = 35,
+--     },
+--     {
+--       elements = {
+--         {
+--           id = "console",
+--           size = 1.0,
+--         },
+--       },
+--       position = "bottom",
+--       size = 10,
+--     },
+--   },
+-- }
 require("nvim-dap-virtual-text").setup {}
 
 local dap = require "dap"

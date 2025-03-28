@@ -152,9 +152,13 @@ vim.keymap.set("v", "<leader>gc", function()
   }
 end, { desc = "find [c]ommits (range)" })
 
-vim.keymap.set("n", "<leader>gb", function()
-  return builtin.git_branches()
-end, { desc = "find [b]ranches" })
+vim.keymap.set({ "n", "v" }, "<leader>gb", function()
+  return require"ddob.utils".git_branches_for_code()
+end, { desc = "find code in [b]ranch" })
+
+-- vim.keymap.set("n", "<leader>gb", function()
+--   return builtin.git_branches()
+-- end, { desc = "find [b]ranches" })
 
 vim.keymap.set("n", "<leader>gB", function()
   return builtin.git_branches {

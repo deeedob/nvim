@@ -27,14 +27,19 @@ return {
   },
 
   {
-    "gauteh/vim-cppman",
+    "madskjeldgaard/cppman.nvim",
     ft = { "c", "cpp", "objc", "objcpp", "cuda" },
+    dependencies = {
+        { "MunifTanjim/nui.nvim" },
+    },
     config = function()
-      vim.keymap.set("n", "<leader>cDk", function()
-        local word = vim.fn.expand "<cword>"
-        local escaped_word = vim.fn.fnameescape(word)
-        vim.cmd("Cppman " .. escaped_word)
-      end, { desc = "Open cppman with cword" })
+      local cppman = require("cppman")
+      cppman.setup()
+      vim.keymap.set("n", "<leader>cDc", function() cppman.input() end, { desc = "open cpp search" })
+      vim.keymap.set("n", "<leader>cDp",
+          "<cmd>lua require('cppman').open_cppman_for(vim.fn.expand('<cword>'))<cr>",
+          { desc = "Open cppman for word under cursor" }
+      )
     end,
   },
 
