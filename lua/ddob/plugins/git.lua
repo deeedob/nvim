@@ -117,8 +117,26 @@ return {
   {
     "tpope/vim-fugitive",
     cmd = "G",
+    init = function()
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "fugitive",
+        callback = function()
+          -- Map <leader>gr in Fugitive buffers to call git_revise_current_word()
+          vim.keymap.set("n", "<leader>gr", function()
+            require("ddob.utils").git_revise_current_word()
+          end, {
+            buffer = true,
+            desc = "Git revise current commit (TermExec)",
+          })
+        end,
+      })
+    end,
     keys = {
-      { "<leader>gf", ":vertical Git | vertical resize 70<cr>", desc = "Fugitive" },
+      {
+        "<leader>gf",
+        ":vertical Git | vertical resize 70<cr>",
+        desc = "Fugitive",
+      },
     },
   },
 
@@ -136,5 +154,4 @@ return {
       "DiffviewToggleFiles",
     },
   },
-
 }
