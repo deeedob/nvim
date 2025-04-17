@@ -1,5 +1,9 @@
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+if vim.loader then
+  vim.loader.enable() -- reduced startup time
+end
+
+vim.g.mapleader = vim.keycode("<space>")
+vim.g.maplocalleader = vim.keycode("<space>")
 
 vim.o.termguicolors = true
 vim.o.guicursor = "n-v-c-sm:block-Cursor,"
@@ -9,28 +13,20 @@ vim.o.guicursor = "n-v-c-sm:block-Cursor,"
 
 vim.api.nvim_command "colorscheme ddob-kanagawa"
 
-local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system {
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  }
+-- Setup Lazy.nvim and load all plugins
+require("shared.lazy")
+-- Finished loading all plugins
+
+-- Setup neovim LSP
+local lsp_configs = {}
+for _, f in pairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+  local server_name = vim.fn.fnamemodify(f, ":t:r")
+  table.insert(lsp_configs, server_name)
 end
+vim.lsp.enable(lsp_configs)
 
-vim.opt.rtp:prepend(lazypath)
-
-require("lazy").setup({ import = "ddob/plugins" }, {
-  change_detection = {
-    notify = false,
-  },
-})
-
-require("ddob.utils").resetTerminalBg()
-
+-- Post init setup
+require("shared.utils").resetTerminalBg()
 vim.cmd([[
     if has('nvim')
         " make sure that GIT_EDITOR is not set before here

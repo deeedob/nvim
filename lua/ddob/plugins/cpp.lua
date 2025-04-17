@@ -63,7 +63,7 @@ return {
           end
         end
         -- CWD doesn't have a valid CMakeLists.txt. Search the project root
-        local project_root = require("ddob.utils").find_project_root()
+        local project_root = require("shared.utils").find_project_root()
         if project_root then
           local proj = vim.uv.fs_stat(project_root .. "/CMakeLists.txt")
           if proj then

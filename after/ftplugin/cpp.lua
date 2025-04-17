@@ -1,4 +1,6 @@
-local utils = require "ddob.utils"
+local utils = require "shared.utils"
+
+vim.api.nvim_set_option_value('tabstop', 4, {})
 
 -- don't inden't labels (fixes indenting on '::')
 vim.opt_local.cinoptions:append "L0"

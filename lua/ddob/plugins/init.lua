@@ -8,12 +8,6 @@ return {
     end,
     config = function()
       local wk = require "which-key"
-      -- wk.setup {
-      --   win = {
-      --     -- winblend = 30,
-      --     padding = { 1, 1 },
-      --   },
-      -- }
       wk.add {
         { "<leader>f", group = "[F]ind" },
         { "<leader>l", group = "[L]sp" },

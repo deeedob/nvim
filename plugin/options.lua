@@ -70,11 +70,22 @@ opt.grepprg = "rg --vimgrep"
 opt.grepformat = "%f:%l:%c:%m"
 
 vim.opt.shortmess = vim.opt.shortmess + {
-  c = true, -- Do not show completion messages in command line
-  F = true, -- Do not show file info when editing a file, in the command line
-  W = false, -- Do not show "written" in command line when writing
-  I = true, -- Do not show intro message when starting Vim
+	A = true, -- When a swap file is found.
+	C = true, -- When scanning for ins-completion items.
+	F = true, -- File info when editing a file.
+	I = true, -- Skip intro message.
+	S = true, -- Search messages, using nvim-hlslens instead.
+	W = false, -- When writing a file.
+	a = true, -- Use abbreviations
+	c = true, -- 'ins-completion-menu' messages.
+	s = true, -- Search hit BOTTOM/TOP messages.
 }
+
+opt.complete = "" -- ".,t" How keyword completion works.
+opt.completeopt = "menu,menuone,noinsert,preview" -- Disable native autocompletion (using nvim-cmp).
+opt.pumblend = 5 -- Opaque completion menu background.
+opt.pumheight = 5 -- Maximum height of popup menu.
+opt.showmatch = false -- Do not jump to matching brackets.
 
 -- Allow cursor to move where this is no text is visual block mode
 opt.virtualedit = "block"
@@ -91,6 +102,3 @@ end
 
 -- <.<
 opt.mouse = "a"
-
-vim.g.loaded_ruby_provider = 0
-vim.g.loaded_perl_provider = 0

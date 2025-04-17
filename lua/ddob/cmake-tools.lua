@@ -16,18 +16,21 @@ vim.keymap.set(
   { desc = "[w]ipe Build Dir", remap = true }
 )
 
-local nproc = tonumber(io.popen("nproc"):read("*n")) - 1
+local nproc = tonumber(io.popen("nproc"):read "*n") - 1
 
 require("cmake-tools").setup {
   cmake_command = "cmake",
   ctest_command = "ctest",
   cmake_use_preset = true,
   cmake_regenerate_on_save = false,
-  cmake_generate_options = { "-DCMAKE_EXPORT_COMPILE_COMMANDS=1", "-DQT_QML_GENERATE_QMLLS_INI=1" },
+  cmake_generate_options = {
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
+    "-DQT_QML_GENERATE_QMLLS_INI=1",
+  },
   cmake_build_options = { "-j " .. tostring(nproc) },
   cmake_build_directory = "cmake-build/${variant:buildType}",
-  cmake_soft_link_compile_commands = false,
-  cmake_compile_commands_from_lsp = true,
+  cmake_soft_link_compile_commands = true,
+  cmake_compile_commands_from_lsp = false,
   cmake_kits_path = vim.fn.stdpath "config" .. "/res/cmake-kits.json",
   cmake_dap_configuration = {
     name = "cpp",
@@ -46,7 +49,7 @@ require("cmake-tools").setup {
       scroll_on_error = true,
       auto_focus = false,
       focus_on_error = false,
-      singleton = true
+      singleton = true,
     },
   },
   cmake_runner = {
@@ -58,7 +61,7 @@ require("cmake-tools").setup {
       scroll_on_error = true,
       auto_focus = false,
       focus_on_error = true,
-      singleton = true
+      singleton = true,
     },
   },
   cmake_notifications = {

@@ -1,5 +1,5 @@
 local map = vim.keymap.set
-local utils = require("ddob.utils")
+local utils = require("shared.utils")
 
 -- normal mode
 map("t", "<Esc><Esc>", "<c-\\><c-n>", { desc = "Enter normal mode" })

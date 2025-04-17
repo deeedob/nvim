@@ -94,8 +94,8 @@ return {
     opts = {
       ring = { storage = "sqlite" },
       highlight = {
-        timer = 250
-      }
+        timer = 250,
+      },
     },
     keys = {
       {
@@ -140,4 +140,17 @@ return {
       },
     },
   },
+
+  {
+    "shellRaining/hlchunk.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      require("hlchunk").setup {
+        chunk = {
+          enable = true,
+        },
+      }
+    end,
+  },
+
 }
