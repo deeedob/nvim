@@ -7,7 +7,6 @@ return {
     "--clang-tidy",
     "--header-insertion=never",
     "--completion-style=detailed", -- or bundled
-    "--header-insertion=iwyu",
     "--function-arg-placeholders",
     "--enable-config", -- uses ~/.local/clangd/config.yaml
     -- "--query-driver=/usr/bin/clang++,/usr/bin/g++",

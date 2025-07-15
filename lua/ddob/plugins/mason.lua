@@ -76,14 +76,11 @@ local function syncPackages(ensurePacks)
 			local pack = masonReg.get_package(name)
 			if pack:is_installed() then
 				-- Only check for updates if no version was pinned
-				if pinnedVersion == "" then
-					pack:check_new_version(function(hasNewVersion, version)
-						if not hasNewVersion then
-							return
-						end
-						install(pack, version.latest_version)
-					end)
-				end
+				-- if pinnedVersion == "" then
+				-- 	local version = pack:get_latest_version()
+				--       if not version then return end
+				--       install(pack, version)
+				-- end
 			else
 				-- Install with pinned version if specified
 				install(pack, pinnedVersion ~= "" and pinnedVersion or nil)
@@ -126,9 +123,9 @@ return {
 			height = 0.85,
 			width = 0.8,
 		},
-    registries = {
-      "file:~/Nextcloud/Coding/repos/mason-registry"
-    }
+    -- registries = {
+    --   "file:~/Nextcloud/Coding/repos/mason-registry"
+    -- }
 	},
 	config = function(_, opts)
 		require("mason").setup(opts)
