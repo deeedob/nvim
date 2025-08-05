@@ -16,7 +16,7 @@ vim.keymap.set(
   { desc = "[w]ipe Build Dir", remap = true }
 )
 
-local nproc = tonumber(io.popen("nproc"):read "*n") - 1
+local nproc = tonumber(os.getenv("COMPILE_CORES"))
 
 require("cmake-tools").setup {
   cmake_command = "cmake",

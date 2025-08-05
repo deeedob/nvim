@@ -12,7 +12,7 @@ return {
     -- "--query-driver=/usr/bin/clang++,/usr/bin/g++",
     -- clangd performance
     "-j=16",
-    "--malloc-trim",
+    -- "--malloc-trim",
     "--background-index",
     "--pch-storage=memory", -- increases memory usage but improves performance, memory, disk
     -- stash

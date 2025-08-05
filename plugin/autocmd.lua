@@ -4,7 +4,16 @@ local augroup = vim.api.nvim_create_augroup("config", { clear = false })
 vim.filetype.add {
   extension = {
     vert = "glsl",
-    frag = "glsl"
+    frag = "glsl",
+  },
+}
+
+vim.filetype.add {
+  extension = {
+    gotmpl = "gotmpl",
+  },
+  pattern = {
+    [".*/layouts/_partials/.*%.html"] = "gotmpl",
   },
 }
 

@@ -24,6 +24,10 @@ require("lazy").setup({ import = "ddob/plugins" }, {
     enabled = false,
     notify = false,
   },
+  rocks = {
+    enabled = false;
+  },
+
   performance = {
     rtp = {
 			disabled_plugins = {

@@ -74,7 +74,7 @@ vim.opt.shortmess = vim.opt.shortmess + {
 	C = true, -- When scanning for ins-completion items.
 	F = true, -- File info when editing a file.
 	I = true, -- Skip intro message.
-	S = true, -- Search messages, using nvim-hlslens instead.
+	S = false, -- Search messages, using nvim-hlslens instead.
 	W = false, -- When writing a file.
 	a = true, -- Use abbreviations
 	c = true, -- 'ins-completion-menu' messages.
@@ -93,8 +93,8 @@ opt.virtualedit = "block"
 -- Enable autowrite
 opt.autowrite = true
 
-vim.lsp.set_log_level("OFF")
--- vim.lsp.log.set_format_func(vim.inspect) -- pretty print log
+vim.lsp.set_log_level("WARN")
+vim.lsp.log.set_format_func(vim.inspect) -- pretty print log
 
 if _G['nvim >= 0.10'] then
 	vim.api.nvim_set_option_value('smoothscroll', true, {})
