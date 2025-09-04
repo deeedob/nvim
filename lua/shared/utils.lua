@@ -2,10 +2,14 @@ local M = {}
 
 function M.search_current_web(url)
   local current_word = vim.fn.expand "<cword>"
+  if not current_word or current_word == "" then
+    vim.notify("No word under cursor.", vim.log.levels.INFO)
+    return
+  end
   local escaped_word = vim.fn.fnameescape(current_word)
   local link = string.format(url .. "%s", escaped_word)
-  print(link)
-  vim.fn.jobstart({ "xdg-open", link }, { detach = true })
+  vim.notify("Opening: " .. link, vim.log.levels.INFO)
+  vim.ui.open(link)
 end
 
 function M.get_visual_pos()
