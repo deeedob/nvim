@@ -2,7 +2,7 @@
 
 return {
 	cmd = { "vscode-html-language-server", "--stdio" },
-	filetypes = { "html", "templ" },
+	filetypes = { "html", "templ", "jinja.html", "htmldjango" },
 	root_markers = { "package.json", ".git" },
 	single_file_support = true,
 	settings = {},

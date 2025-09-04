@@ -23,6 +23,11 @@ return {
   },
 
   {
+      "HiPhish/jinja.vim",
+      lazy = false
+  },
+
+  {
     "stevearc/conform.nvim",
     opts = {
       format = {
@@ -58,6 +63,7 @@ return {
         proto = { "buf" },
 
         html = { "prettier" },
+        htmldjango = { "prettier" },
         css = { "prettier" },
         scss = { "prettier" },
         javascript = { "prettier" },

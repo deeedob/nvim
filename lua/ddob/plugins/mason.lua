@@ -18,6 +18,7 @@ local PACKAGES = {
   "taplo",
   "marksman",
   "qmlls",
+  "typescript-language-server",
 	-- DAP
 	"codelldb",
   "cpptools",

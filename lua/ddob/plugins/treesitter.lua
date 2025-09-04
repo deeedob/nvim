@@ -12,6 +12,10 @@ return {
           "markdown",
           "markdown_inline",
           "regex",
+          "html",
+          "css",
+          "javascript",
+          "typescript"
         },
         auto_install = true,
         sync_install = false,
