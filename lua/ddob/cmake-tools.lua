@@ -29,7 +29,7 @@ require("cmake-tools").setup {
   },
   cmake_build_options = { "-j " .. tostring(nproc) },
   cmake_build_directory = "cmake-build/${variant:buildType}",
-  cmake_soft_link_compile_commands = true,
+  cmake_soft_link_compile_commands = false,
   cmake_compile_commands_from_lsp = false,
   cmake_kits_path = vim.fn.stdpath "config" .. "/res/cmake-kits.json",
   cmake_dap_configuration = {
