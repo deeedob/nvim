@@ -8,11 +8,11 @@ vim.opt_local.cinoptions:append "L0"
 vim.opt_local.commentstring = "// %s"
 
 vim.keymap.set("n", "<leader>cDq", function()
-  utils.search_current_web "https://doc.qt.io/qt-6/search-results.html?q="
+  utils.search_current_web "https://doc.qt.io/qt-6/search-results.html?q=%s"
 end, { desc = "Code Docs [Q]t", buffer = 0 })
 
 vim.keymap.set("n", "<leader>cDr", function()
-  utils.search_current_web "https://en.cppreference.com/mwiki/index.php?title=Special%%3ASearch&search="
+  utils.search_current_web "https://duckduckgo.com/?q=%s+site:en.cppreference.com"
 end, { desc = "Code Docs Cpp[R]eference", buffer = 0 })
 
 vim.keymap.set(

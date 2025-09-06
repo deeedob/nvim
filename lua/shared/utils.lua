@@ -1,13 +1,13 @@
 local M = {}
 
-function M.search_current_web(url)
+function M.search_current_web(url_template)
   local current_word = vim.fn.expand "<cword>"
   if not current_word or current_word == "" then
-    vim.notify("No word under cursor.", vim.log.levels.INFO)
+    vim.notify("No word under cursor.", vim.log.levels.WARN)
     return
   end
-  local escaped_word = vim.fn.fnameescape(current_word)
-  local link = string.format(url .. "%s", escaped_word)
+  local escaped_word = string.gsub(current_word, " ", "+")
+  local link = string.format(url_template, escaped_word)
   vim.notify("Opening: " .. link, vim.log.levels.INFO)
   vim.ui.open(link)
 end
