@@ -1,7 +1,12 @@
 -- lsp/tsserver.lua
 return {
   cmd = { "typescript-language-server", "--stdio" },
-  filetypes = { "javascript", "typescript", "javascriptreact", "typescriptreact" },
+  filetypes = {
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact",
+  },
   root_markers = { "package.json", ".git" },
   single_file_support = true,
   on_attach = function(client)

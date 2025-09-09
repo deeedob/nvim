@@ -140,10 +140,8 @@ return {
     },
   },
 
-  -- TODO: needed?
   {
     "sindrets/diffview.nvim",
-    enabled = false,
     cmd = {
       "DiffviewClose",
       "DiffviewFileHistory",

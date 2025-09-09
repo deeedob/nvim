@@ -8,18 +8,20 @@ if vim.version.lt(vim.version(), { 0, 11 }) then
   })
 end
 
-vim.g.mapleader = vim.keycode("<space>")
-vim.g.maplocalleader = vim.keycode("<space>")
+vim.g.mapleader = vim.keycode "<space>"
+vim.g.maplocalleader = vim.keycode "<space>"
 vim.g.has_ui = #vim.api.nvim_list_uis() > 0
 
 vim.api.nvim_command "colorscheme ddob-kanagawa"
 
 if vim.g.has_ui then
-    require("utils.plugin").setup("ddob/plugins")
+  require("utils.plugin").setup()
 end
 
 -- Setup neovim LSP
-vim.lsp.log.set_level(vim.o.verbose > 0 and vim.log.levels.INFO or vim.log.levels.WARN)
+vim.lsp.log.set_level(
+  vim.o.verbose > 0 and vim.log.levels.INFO or vim.log.levels.WARN
+)
 
 local lsp_configs = {}
 for _, f in pairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
@@ -28,12 +30,11 @@ for _, f in pairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
 end
 vim.lsp.enable(lsp_configs)
 
-
 -- Post init setup
 -- require("shared.utils").resetTerminalBg()
-vim.cmd([[
+vim.cmd [[
     if has('nvim')
         " make sure that GIT_EDITOR is not set before here
         let $GIT_EDITOR = "nvr -cc tabedit --remote-wait +'set bufhidden=wipe'"
     endif
-]])
+]]

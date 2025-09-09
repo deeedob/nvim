@@ -1,4 +1,4 @@
-vim.bo.bufhidden = 'delete'
+vim.bo.bufhidden = "delete"
 vim.bo.readonly = false
 vim.bo.expandtab = true
 vim.bo.modifiable = true

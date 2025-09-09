@@ -1,5 +1,5 @@
 local function stop_server(server, force)
-  vim.iter(vim.lsp.get_clients({ name = server })):each(function(client)
+  vim.iter(vim.lsp.get_clients { name = server }):each(function(client)
     client:stop(force)
   end)
   return true
@@ -9,7 +9,8 @@ end
 ---@param cmdline string
 ---@return string[]
 local function get_cmd(cmdline)
-  return vim.iter(vim.split(cmdline, '%s+', { trimempty = true }))
+  return vim
+    .iter(vim.split(cmdline, "%s+", { trimempty = true }))
     :map(vim.trim)
     :totable()
 end
@@ -70,7 +71,7 @@ completions.lsp_configs = function(arglead, cmdline, cursorpos)
     .iter(configs)
     :map(function(path)
       local fname = vim.fs.basename(path) -- e.g. "pyright.lua"
-      return fname:gsub("%.lua$", "")     -- strip ".lua"
+      return fname:gsub("%.lua$", "") -- strip ".lua"
     end)
     :filter(function(configname)
       local config = vim.lsp.config[configname]
@@ -92,7 +93,7 @@ end
 
 -- User commands
 vim.api.nvim_create_user_command("LspInfo", function()
-  vim.cmd.checkhealth("vim.lsp")
+  vim.cmd.checkhealth "vim.lsp"
 end, {
   nargs = 0,
   desc = "Open LSP info",
@@ -122,7 +123,11 @@ end, {
 vim.api.nvim_create_user_command("LspStop", function(opts)
   local server = opts.args
   if stop_server(server, opts.bang) then
-    vim.notify(string.format("%s stopped", server), vim.log.levels.INFO, { title = "LspStop" })
+    vim.notify(
+      string.format("%s stopped", server),
+      vim.log.levels.INFO,
+      { title = "LspStop" }
+    )
   end
 end, {
   bang = true,
@@ -133,7 +138,11 @@ end, {
 
 vim.api.nvim_create_user_command("LspRestart", function(opts)
   local server = opts.args
-  vim.notify(string.format("Restartting %s", server), vim.log.levels.INFO, { title = "LspRestart" })
+  vim.notify(
+    string.format("Restartting %s", server),
+    vim.log.levels.INFO,
+    { title = "LspRestart" }
+  )
   if stop_server(server) then
     vim.lsp.enable(server, true)
   end
@@ -143,4 +152,3 @@ end, {
   complete = completions.lsp_clients,
   desc = "Restart an active lsp server",
 })
-

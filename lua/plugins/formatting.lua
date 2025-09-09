@@ -1,33 +1,6 @@
 return {
 
   {
-    "b0o/SchemaStore.nvim",
-    event = "VeryLazy",
-  },
-
-  {
-    "folke/lazydev.nvim",
-    opts = {
-      library = {
-        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
-      },
-    },
-    lazy = true,
-    ft = "lua",
-  },
-
-  {
-    "folke/trouble.nvim",
-    opts = {},
-    event = "VeryLazy",
-  },
-
-  {
-      "HiPhish/jinja.vim",
-      lazy = false
-  },
-
-  {
     "stevearc/conform.nvim",
     opts = {
       format = {
@@ -39,7 +12,8 @@ return {
         clang_format = {
           args = function()
             local default_clang = "file"
-            local has_local_clang = vim.fn.filereadable ".clang-format" == 1
+            local has_local_clang =
+              require("utils.files").exists ".clang-format"
             if not has_local_clang then
               default_clang = "file:"
                 .. os.getenv "HOME"
@@ -102,7 +76,7 @@ return {
           if hunks == nil or next(hunks) == nil then
             vim.notify(
               "no git hunks to format",
-              "info",
+              vim.log.levels.INFO,
               { title = "formating" }
             )
             return
@@ -113,7 +87,7 @@ return {
             if next(hunks) == nil then
               vim.notify(
                 "done formatting git hunks",
-                "info",
+                vim.log.levels.INFO,
                 { title = "formatting" }
               )
               return

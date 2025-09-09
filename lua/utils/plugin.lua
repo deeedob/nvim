@@ -1,17 +1,27 @@
 local M = {}
 
-M.setup = function(plugin_dir)
-  vim.validate({ name = { plugin_dir, "string" } })
+M.setup = function()
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+  local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 
   if not vim.uv.fs_stat(lazypath) then
-    local out =
-      vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+    local out = vim.fn.system {
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "--branch=stable",
+      lazyrepo,
+      lazypath,
+    }
     if vim.v.shell_error ~= 0 then
-      vim.notify("Failed to clone lazy.nvim:\n"
-                  .. "  " .. out .. "\n"
-                  .. "Press any key to exit...", vim.log.levels.ERROR)
+      vim.notify(
+        "Failed to clone lazy.nvim:\n"
+          .. "  "
+          .. out
+          .. "\n"
+          .. "Press any key to exit...",
+        vim.log.levels.ERROR
+      )
       vim.fn.getchar()
       os.exit(1)
     end
@@ -19,9 +29,12 @@ M.setup = function(plugin_dir)
 
   vim.opt.rtp:prepend(lazypath)
 
-  require("lazy").setup({ import = plugin_dir }, {
+  require("lazy").setup({
+    { import = "plugins" },
+    { import = "plugins/langs" },
+  }, {
     defaults = {
-        lazy = false,
+      lazy = false,
     },
     local_spec = false, -- disable .lazy.lua
     rocks = {
@@ -52,8 +65,8 @@ M.setup = function(plugin_dir)
   })
 end
 
-M.exists = function (name)
-  vim.validate({ name = { name, "string" } })
+M.exists = function(name)
+  vim.validate { name = { name, "string" } }
   local ok, lazy = pcall(require, "lazy")
   if not ok then
     return false
@@ -62,8 +75,8 @@ M.exists = function (name)
   return plugin
 end
 
-M.loaded = function (name)
-  local p = M.is_present(name)
+M.loaded = function(name)
+  local p = M.exists(name)
   return p and p._.loaded or false
 end
 

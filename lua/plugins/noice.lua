@@ -1,3 +1,25 @@
+local routes = {}
+local hidden_text = {
+  "%[w%]",
+  "written",
+  "fewer lines",
+  "line less",
+  "%d+ changes?;",
+  "more lines?",
+  "yanked",
+  "%d+ lines?",
+}
+for _, msg in ipairs(hidden_text) do
+  table.insert(routes, {
+    filter = {
+      event = "msg_show",
+      kind = "",
+      find = msg,
+    },
+    opts = { skip = true },
+  })
+end
+
 return {
   "folke/noice.nvim",
   event = "VeryLazy",
@@ -35,16 +57,6 @@ return {
         },
       },
     },
-    routes = {
-      {
-        -- Hide written messages
-        filter = {
-          event = "msg_show",
-          kind = "",
-          find = "written",
-        },
-        opts = { skip = true },
-      },
-    },
+    routes = routes,
   },
 }

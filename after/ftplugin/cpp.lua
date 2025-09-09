@@ -1,4 +1,4 @@
-vim.api.nvim_set_option_value('tabstop', 4, {})
+vim.api.nvim_set_option_value("tabstop", 4, {})
 
 -- don't inden't labels (fixes indenting on '::')
 vim.opt_local.cinoptions:append "L0"
@@ -12,25 +12,3 @@ end, { desc = "Code Docs [Q]t", buffer = 0 })
 vim.keymap.set("n", "<leader>cDr", function()
   require("utils.functions").search_current_web "https://duckduckgo.com/?q=%s+site:en.cppreference.com"
 end, { desc = "Code Docs Cpp[R]eference", buffer = 0 })
-
-vim.keymap.set(
-  "n",
-  "<leader>ll",
-  "<cmd>ClangdSwitchSourceHeader<cr>",
-  { desc = "Switch Source/Header (C/C++)", buffer = 0 }
-)
-
-vim.keymap.set(
-  "n",
-  "<leader>lA",
-  "<cmd>ClangdAST<cr>",
-  { desc = "AST toggle (C/C++)", buffer = 0 }
-)
-
-vim.keymap.set(
-  "n",
-  "<leader>ui",
-  "<cmd>ClangdToggleInlayHints<cr>",
-  { desc = "LSP Toggle Inlay Hints (C/C++)", buffer = 0 }
-)
-

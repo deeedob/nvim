@@ -1,4 +1,3 @@
--- Autocomplete
 -- https://cmp.saghen.dev
 
 local DISABLED_FILETYPES = {
@@ -23,22 +22,29 @@ local DISABLED_FILETYPES = {
 return {
   "saghen/blink.cmp",
   version = "1.*",
-
+  opts_extended = { "sources.default" },
+  event = { "InsertEnter", "CmdlineEnter" },
   dependencies = {
     {
       "L3MON4D3/LuaSnip",
       version = "v2.*",
-      build = "make install_jsregexp",
-      config = function()
-        for _, ft_path in
-          ipairs(
-            vim.api.nvim_get_runtime_file("lua/custom/snippets/*.lua", true)
-          )
-        do
-          loadfile(ft_path)()
-        end
+      build = function(plugin)
+        local cmd = { "make", "install_jsregexp" }
+        vim.system(cmd, { cwd = plugin.dir }):wait()
       end,
+      config = function(_, opts)
+        require("luasnip").setup(opts)
+        require("luasnip.loaders.from_lua").load {
+          paths = { vim.fn.stdpath "config" .. "/lua/snippets" },
+        }
+      end,
+      opts = {
+        updateevents = "TextChanged,TextChangedI",
+        override_builtin = true,
+        enable_autosnippets = false,
+      },
     },
+    "lazydev.nvim",
   },
 
   opts = {
@@ -168,6 +174,7 @@ return {
     },
 
     sources = {
+      -- min_keywoard_length = 2,
 
       default = function(ctx)
         local success, node = pcall(vim.treesitter.get_node)
@@ -186,6 +193,16 @@ return {
       end,
 
       providers = {
+        lsp = {
+          name = "LSP",
+          module = "blink.cmp.sources.lsp",
+          transform_items = function(_, items)
+            return vim.tbl_filter(function(item)
+              return item.kink
+                ~= require("blink.cmp.types").CompletionItemKind.Keyword
+            end, items)
+          end,
+        },
         path = {
           opts = {
             trailing_slash = true,
@@ -227,7 +244,4 @@ return {
       window = { border = "rounded" },
     },
   },
-
-  opts_extended = { "sources.default" },
-  event = { "InsertEnter", "CmdlineEnter" },
 }

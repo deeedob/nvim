@@ -178,10 +178,6 @@ local no_backup = {
 vim.opt.wildignore = wildignores
 vim.opt.backupskip = vim.list_extend(no_backup, wildignores)
 
--- >> Globals for Specific Filetypes/Plugins
-vim.g.c_syntax_for_h = 0
-vim.g.c_comment_strings = 1
-vim.g.c_no_if0 = 0
 vim.g.terminal_scrollback_buffer_size = 100000
 
 -- >> Disabled Built-in Plugins

@@ -12,10 +12,13 @@ vim.o.termguicolors = true
 vim.g.colors_name = "ddob-kanagawa"
 
 local function multiply_channel(color, channel_bit, factor)
-	--- Shift the value all the way to the right, and mask it.
-	local masked_value = bit.band(0xFF, bit.rshift(color, channel_bit))
-	-- multiply the value by the factor, ensure it is between 0-FF, and shift it back to where it was before.
-	return bit.lshift(math.min(0xFF, math.max(0, math.floor(masked_value * factor))), channel_bit)
+  --- Shift the value all the way to the right, and mask it.
+  local masked_value = bit.band(0xFF, bit.rshift(color, channel_bit))
+  -- multiply the value by the factor, ensure it is between 0-FF, and shift it back to where it was before.
+  return bit.lshift(
+    math.min(0xFF, math.max(0, math.floor(masked_value * factor))),
+    channel_bit
+  )
 end
 
 local function saturate(color, factor)
@@ -86,8 +89,8 @@ local palette = {
   waveAqua2 = "#7AA89F", -- improve lightness: desaturated greenish Aqua
 
   -- waveAqua2  = "#68AD99",
-  waveAqua4  = "#7AA880",
-  waveAqua5  = "#6CAF95",
+  waveAqua4 = "#7AA880",
+  waveAqua5 = "#6CAF95",
   -- waveAqua3  = "#68AD99",
 
   springGreen = "#98BB6C",
@@ -805,7 +808,10 @@ local plugin_groups = {
   CmpCompletionThumb = { link = "PmenuThumb" },
   CmpCompletionSbar = { link = "PmenuSbar" },
   CmpItemAbbr = { fg = theme.ui.pmenu.fg },
-  CmpItemAbbrDeprecated = { fg = theme.syn.comment_documentation, strikethrough = true },
+  CmpItemAbbrDeprecated = {
+    fg = theme.syn.comment_documentation,
+    strikethrough = true,
+  },
   CmpItemAbbrMatch = { fg = theme.syn.func_builtin },
   CmpItemAbbrMatchFuzzy = { link = "CmpItemAbbrMatch" },
   CmpItemKindDefault = { fg = theme.syn.annotation },
@@ -840,7 +846,6 @@ local plugin_groups = {
   BlinkCmpSignatureHelpBorder = { link = "@keyword" },
   BlinkCmpMenuBorder = { link = "@keyword" },
   BlinkCmpDocBorder = { link = "@keyword" },
-
 
   -- IndentBlankline
   IndentBlanklineChar = { fg = theme.ui.whitespace },
