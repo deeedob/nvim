@@ -43,3 +43,21 @@ vim.api.nvim_create_user_command("Redir", function(ctx)
   vim.opt_local.modified = false
 end, { nargs = "+", complete = "command" })
 
+vim.api.nvim_create_user_command("SpellLang", function(opts)
+  local lang = opts.args
+  if lang and lang ~= "" then
+    vim.bo.spelllang = lang
+  end
+  vim.print(vim.bo.spelllang)
+end, { nargs = "?", desc = "Enable/Disable spelling" })
+
+vim.api.nvim_create_user_command("VerboseToggle", function(opts)
+  local val = opts.args ~= "" and tonumber(opts.args) or nil
+  if val then
+    vim.o.verbose = val
+  else
+    vim.o.verbose = vim.o.verbose > 0 and 0 or 1
+  end
+  vim.lsp.log.set_level(vim.o.verbose > 0 and vim.log.levels.INFO or vim.log.levels.WARN)
+  vim.print(" Verbose: " .. (vim.o.verbose > 0 and "true" or "false"))
+end, { desc = "Enable/Disable verbose output", nargs = "*" })

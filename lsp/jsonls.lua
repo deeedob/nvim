@@ -9,11 +9,17 @@ return {
 	root_markers = { ".git" },
   single_file_support = true,
   -- https://raw.githubusercontent.com/microsoft/vscode/master/extensions/json-language-features/package.json
-  settings = {
-    json = {
-      schemas = require("schemastore").json.schemas(),
-      validate = { enable = true },
+  settings = function()
+    local schemas
+    if pcall(require, "schemastore") then
+      schemas = require("schemastore").json.schemas()
+    end
+    return {
+      json = {
+        schemas = schemas,
+        validate = { enable = true },
+      }
     }
-  }
+  end
 }
 

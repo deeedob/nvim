@@ -1,5 +1,4 @@
 local map = vim.keymap.set
-local utils = require("shared.utils")
 
 -- normal mode
 map("t", "<Esc><Esc>", "<c-\\><c-n>", { desc = "Enter normal mode" })
@@ -46,16 +45,16 @@ end, { desc = "Goto file", noremap = true, silent = true } )
 
 -- Resize
 map({ "n" }, "<S-Left>", function()
-	utils.change_width("left")
+  require("utils.window").change_width "left"
 end, { desc = "Increase Left", silent = true })
 map({ "n" }, "<S-Right>", function()
-	utils.change_width("right")
+  require("utils.window").change_width "right"
 end, { desc = "Increase Right", silent = true })
 map({ "n" }, "<S-Up>", function()
-	utils.change_width("up")
+  require("utils.window").change_width "up"
 end, { desc = "Increase Up", silent = true })
 map({ "n" }, "<S-Down>", function()
-        utils.change_width("down")
+  require("utils.window").change_width "down"
 end, { desc = "Increase Down", silent = true })
 
 -- Move lines
@@ -92,6 +91,12 @@ end, { expr = true })
 
 map("n", "]d", vim.diagnostic.goto_next)
 map("n", "[d", vim.diagnostic.goto_prev)
+vim.keymap.set(
+  "n",
+  "<leader>ld",
+  vim.diagnostic.open_float,
+  { desc = "[D]iagnostic Line", buffer = 0 }
+)
 
 -- buffers
 map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer" })

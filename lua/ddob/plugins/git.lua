@@ -123,7 +123,7 @@ return {
         callback = function()
           -- Map <leader>gr in Fugitive buffers to call git_revise_current_word()
           vim.keymap.set("n", "<leader>gr", function()
-            require("shared.utils").git_revise_current_word()
+            require("utils.git").revise_current_word()
           end, {
             buffer = true,
             desc = "Git revise current commit (TermExec)",

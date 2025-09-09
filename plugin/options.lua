@@ -1,104 +1,208 @@
-local opt = vim.opt
+-- >> Behavior & Editor Functionality
+vim.opt.clipboard = "unnamedplus"
+vim.opt.swapfile = false
+vim.opt.undofile = true
+vim.opt.undolevels = 10000
+vim.opt.hidden = true
+vim.opt.confirm = true
+vim.opt.autowrite = true
+vim.opt.autowriteall = true
+vim.opt.virtualedit = "block"
+vim.opt.joinspaces = false
+vim.opt.inccommand = "split"
+vim.opt.cpoptions = "aAceFs_B"
+vim.opt.mouse = "a"
+vim.opt.guicursor = "n-v-c-sm:block-Cursor,"
+  .. "i-ci-ve:ver30-blinkwait200-blinkon800,"
+  .. "r-cr-o:hor20"
+vim.opt.smoothscroll = true
 
-vim.api.nvim_set_option_value('softtabstop', -1, {}) -- use shiftwidth
-vim.api.nvim_set_option_value('shiftwidth', 0, {}) -- use tabstop
-vim.api.nvim_set_option_value('tabstop', 4, {}) -- spaces per tab
-vim.api.nvim_set_option_value('smartindent', true, {})
-vim.api.nvim_set_option_value('expandtab', true, {})
+-- >> UI & Appearance
+vim.opt.termguicolors = true
+vim.opt.number = true
+vim.opt.relativenumber = false
+vim.opt.cursorline = true
+vim.opt.cursorlineopt = "number"
+vim.opt.signcolumn = "auto:3"
+vim.opt.wrap = false
+vim.opt.scrolloff = 8
+vim.opt.sidescrolloff = 4
+vim.opt.showmode = false
+vim.opt.showcmd = false
+vim.opt.laststatus = 3
+vim.opt.visualbell = true
+vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20"
+vim.opt.title = true
+vim.opt.titlestring = "%t (%f)"
 
--- Cursor
-opt.cursorline = true
-opt.cursorlineopt = "number"
-opt.cursorcolumn = false
+vim.opt.complete = "" -- ".,t" How keyword completion works.
+vim.opt.completeopt = "menu,menuone,noinsert,preview"
+vim.opt.pumblend = 5 -- Opaque completion menu background.
+vim.opt.pumheight = 5 -- Maximum height of popup menu.
+vim.opt.showmatch = false -- Do not jump to matching brackets.
 
--- preview regex items
-opt.inccommand = "split"
+-- >> Windows, Splits & Diff
+vim.opt.splitbelow = true
+vim.opt.splitright = true
+vim.opt.diffopt:append({
+  "vertical",
+  "iwhiteall",
+  "iwhiteeol",
+  "indent-heuristic",
+  "hiddenoff",
+  "closeoff",
+  "algorithm:patience",
+  "linematch:100",
+})
 
-opt.signcolumn = "auto:3"
+-- >> Indentation & Tabs
+vim.opt.expandtab = true
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 0
+vim.opt.softtabstop = -1
+vim.opt.smartindent = true
+vim.opt.copyindent = true
+vim.opt.shiftround = true
 
--- scrolloff
-opt.scrolloff = 8
-opt.sidescrolloff = 4
+-- >> Text & Line Breaking
+vim.opt.breakindent = true
+vim.opt.linebreak = true
+vim.opt.formatoptions:remove "o"
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
+vim.opt.foldtext = "v:lua.NeatFoldText()"
 
--- searching
-opt.smartcase = true
-opt.ignorecase = true
+-- >> Search
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.hlsearch = true
+if vim.bo.modifiable then
+    vim.opt.fileencoding = 'utf-8'
+end
+vim.opt.shada = { "!", "/1000", "'1000", "<1000", ":1000", "s10000", "h" }
+if jit.os == "windows" then
+  vim.opt.shada:append({ "rA:", "rB:", "rC:", "rC:/Temp" })
+else
+  vim.opt.shada:append("r/tmp/")
+end
+vim.opt.shortmess:append({ A = true, C = true, F = true, I = true, s = true, a = true })
 
--- Diff
-vim.opt.diffopt:append 'linematch:60'
-
--- numbers
-opt.number = true
-opt.relativenumber = false
-
-opt.splitbelow = true
-opt.splitright = true
-
--- TODO: find a way to disable numbers in foldcolumn
-vim.o.foldcolumn = "0"
-vim.o.foldlevel = 99
-vim.o.foldlevelstart = 99
-vim.o.foldenable = true
-vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
-vim.api.nvim_set_option_value('foldexpr', 'v:lua.vim.treesitter.foldexpr()', {})
-vim.api.nvim_set_option_value('foldmethod', 'expr', {})
-vim.api.nvim_set_option_value('foldtext', 'v:lua.NeatFoldText()', {})
-vim.api.nvim_set_option_value("breakindent", true, {})
-vim.api.nvim_set_option_value('linebreak', true, {})
--- vim.o.statuscolumn='%=%l%s%{foldlevel(v:lnum) > 0 ? (foldlevel(v:lnum) > foldlevel(v:lnum - 1) ? (foldclosed(v:lnum) == -1 ? "-" : "+") : "│") : " " }'
-
-opt.shada = { "'10", "<0", "s10", "h" }
-
-opt.wrap = false
-
-opt.clipboard = "unnamedplus"
-
-opt.formatoptions:remove "o"
-
--- disable swapfile
-opt.swapfile = false
-
--- Enable persistent undo
-opt.undofile = true
-opt.undolevels = 10000
-
--- Confirm to save changed before exiting the modified buffer
-opt.confirm = true
-
--- Use ripgrep as the grep program for neovim
-opt.grepprg = "rg --vimgrep"
-opt.grepformat = "%f:%l:%c:%m"
-
-vim.opt.shortmess = vim.opt.shortmess + {
-	A = true, -- When a swap file is found.
-	C = true, -- When scanning for ins-completion items.
-	F = true, -- File info when editing a file.
-	I = true, -- Skip intro message.
-	S = false, -- Search messages, using nvim-hlslens instead.
-	W = false, -- When writing a file.
-	a = true, -- Use abbreviations
-	c = true, -- 'ins-completion-menu' messages.
-	s = true, -- Search hit BOTTOM/TOP messages.
-}
-
-opt.complete = "" -- ".,t" How keyword completion works.
-opt.completeopt = "menu,menuone,noinsert,preview" -- Disable native autocompletion (using nvim-cmp).
-opt.pumblend = 5 -- Opaque completion menu background.
-opt.pumheight = 5 -- Maximum height of popup menu.
-opt.showmatch = false -- Do not jump to matching brackets.
-
--- Allow cursor to move where this is no text is visual block mode
-opt.virtualedit = "block"
-
--- Enable autowrite
-opt.autowrite = true
-
-vim.lsp.set_log_level("WARN")
-vim.lsp.log.set_format_func(vim.inspect) -- pretty print log
-
-if _G['nvim >= 0.10'] then
-	vim.api.nvim_set_option_value('smoothscroll', true, {})
+local words_path = "/usr/share/dict/words"
+if vim.uv.fs_stat(words_path) then
+  vim.opt.dictionary:append(words_path)
 end
 
--- <.<
-opt.mouse = "a"
+-- >> Files & Grep
+vim.opt.grepprg = "rg --vimgrep"
+vim.opt.grepformat = "%f:%l:%c:%m"
+
+-- >> Diagnostic
+vim.diagnostic.config {
+  underline = true,
+  virtual_text = false,
+  virtual_lines = false,
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = "",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.INFO] = "",
+      [vim.diagnostic.severity.HINT] = "",
+    },
+    numhl = {
+      [vim.diagnostic.severity.ERROR] = "ColumnDiagnosticError",
+      [vim.diagnostic.severity.WARN] = "ColumnDiagnosticWarn",
+      [vim.diagnostic.severity.INFO] = "ColumnDiagnosticInfo",
+      [vim.diagnostic.severity.HINT] = "ColumnDiagnosticHint",
+    },
+  },
+  update_in_insert = true,
+  severity_sort = true,
+  float = {
+    scope = "line",
+    border = "rounded",
+    header = "",
+    prefix = " ",
+    focusable = false,
+    source = true,
+  },
+}
+
+local wildignores = {
+  "*.spl",
+  "*.aux",
+  "*.out",
+  "*.o",
+  "*.pyc",
+  "*.gz",
+  "*.sw",
+  "*.swp",
+  "*.swap",
+  "*.com",
+  "*.class",
+  "*.slo",
+  "*.lo",
+  "*.oarma72smp",
+  "*.oppc500",
+  "*.oppc",
+  "*.opp",
+  "*.so",
+  "*.lai",
+  "*.la",
+  "*.a",
+  "*.pkl",
+  "*cache/*",
+  "*__pycache__/*",
+}
+
+local no_backup = {
+  ".git/*",
+  ".clangd/*",
+  ".gem/*",
+  ".caddir/",
+  ".svn/*",
+  "*.bin",
+  "*.7z",
+  "*.dmg",
+  "*.gz",
+  "*.iso",
+  "*.jar",
+  "*.rar",
+  "*.tar",
+  "*.zip",
+  "*.exe",
+  "TAGS",
+  "tags",
+  "GTAGS",
+  "COMMIT_EDITMSG",
+}
+vim.opt.wildignore = wildignores
+vim.opt.backupskip = vim.list_extend(no_backup, wildignores)
+
+-- >> Globals for Specific Filetypes/Plugins
+vim.g.c_syntax_for_h = 0
+vim.g.c_comment_strings = 1
+vim.g.c_no_if0 = 0
+vim.g.terminal_scrollback_buffer_size = 100000
+
+-- >> Disabled Built-in Plugins
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_node_provider = 0
+vim.g.loaded_python_provider = 0
+vim.g.loaded_python3_provider = 0
+
+vim.g.loaded_2html_plugin = 0
+vim.g.loaded_getscript = 0
+vim.g.loaded_getscriptPlugin = 0
+vim.g.loaded_gzip = 0
+vim.g.loaded_matchit = 0
+vim.g.loaded_matchparen = 0
+vim.g.loaded_netrwPlugin = 0
+vim.g.loaded_rrhelper = 0
+vim.g.loaded_tar = 0
+vim.g.loaded_tarPlugin = 0
+vim.g.loaded_tutor_mode_plugin = 0
+vim.g.loaded_vimball = 0
+vim.g.loaded_vimballPlugin = 0
+vim.g.loaded_zip = 0
+vim.g.loaded_zipPlugin = 0

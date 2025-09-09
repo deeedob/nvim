@@ -1,22 +1,6 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup("config", { clear = false })
 
-vim.filetype.add {
-  extension = {
-    vert = "glsl",
-    frag = "glsl",
-  },
-}
-
-vim.filetype.add {
-  extension = {
-    gotmpl = "gotmpl",
-  },
-  pattern = {
-    [".*/layouts/_partials/.*%.html"] = "gotmpl",
-  },
-}
-
 -- Quick close
 autocmd("FileType", {
   group = augroup,
@@ -30,15 +14,7 @@ autocmd("FileType", {
     "notify",
     "dap-float",
   },
-  callback = function(event)
-    vim.bo[event.buf].buflisted = false
-    vim.keymap.set(
-      "n",
-      "q",
-      "<cmd>close<cr>",
-      { buffer = event.buf, silent = true }
-    )
-  end,
+  command = "nnoremap <silent><nowait><buffer> q <cmd>q!<CR>",
 })
 
 -- Remove trailing whitespaces
@@ -63,14 +39,14 @@ autocmd(
 )
 
 -- Fancy yank
--- autocmd("TextYankPost", {
---   group = augroup,
---   callback = function()
---     vim.highlight.on_yank {
---       timeout = 175,
---     }
---   end,
--- })
+autocmd("TextYankPost", {
+  group = augroup,
+  callback = function()
+    vim.highlight.on_yank {
+      timeout = 175,
+    }
+  end,
+})
 
 -- Go to the last loc when opening a buffer
 autocmd("BufReadPost", {

@@ -41,51 +41,10 @@ local trouble = {
         position = "right",
       },
     }
-  end
+  end,
 }
 
-local function diagnostics()
-  vim.diagnostic.config {
-    underline = true,
-    virtual_text = false,
-    signs = {
-      text = {
-        [vim.diagnostic.severity.ERROR] = "",
-        [vim.diagnostic.severity.WARN] = "",
-        [vim.diagnostic.severity.INFO] = "",
-        [vim.diagnostic.severity.HINT] = "",
-      },
-      numhl = {
-        [vim.diagnostic.severity.ERROR] = "ColumnDiagnosticError",
-        [vim.diagnostic.severity.WARN] = "ColumnDiagnosticWarn",
-        [vim.diagnostic.severity.INFO] = "ColumnDiagnosticInfo",
-        [vim.diagnostic.severity.HINT] = "ColumnDiagnosticHint",
-      },
-    },
-    update_in_insert = true,
-    severity_sort = true,
-    float = {
-      scope = "line",
-      border = "rounded",
-      header = "",
-      prefix = " ",
-      focusable = false,
-      source = true,
-    },
-  }
-
-  -- Highlight the NumColumn with diagnostic output
-  vim.cmd [[
-    exec 'hi ColumnDiagnosticHint guifg=' . synIDattr(hlID('DiagnosticHint'), 'fg')
-    exec 'hi ColumnDiagnosticInfo guifg=' . synIDattr(hlID('DiagnosticInfo'), 'fg')
-    exec 'hi ColumnDiagnosticWarn guifg=' . synIDattr(hlID('DiagnosticWarn'), 'fg')
-    exec 'hi ColumnDiagnosticError guifg=' . synIDattr(hlID('DiagnosticError'), 'fg')
-    hi link SyntasticErrorLine SignColumn
-  ]]
-end
-
 local function keymaps(bufnr, client)
-
   vim.keymap.set(
     "n",
     "K",
@@ -149,12 +108,6 @@ local function keymaps(bufnr, client)
   )
   vim.keymap.set(
     "n",
-    "<leader>ld",
-    vim.diagnostic.open_float,
-    { desc = "[D]iagnostic Line", buffer = 0 }
-  )
-  vim.keymap.set(
-    "n",
     "<leader>ls",
     vim.lsp.buf.document_symbol,
     { desc = "[S]ymbols", buffer = 0 }
@@ -162,20 +115,28 @@ local function keymaps(bufnr, client)
 end
 
 vim.api.nvim_create_autocmd("LspAttach", {
-	group = augroup,
-	pattern = "*",
-	callback = function(event)
-		if vim.g.vscode then
-			return
-		end
+  group = augroup,
+  pattern = "*",
+  callback = function(event)
+    if vim.g.vscode then
+      return
+    end
 
-		local bufnr = event.buf
-		local client = vim.lsp.get_client_by_id(event.data.client_id)
-		if not client then
-			return
-		end
+    local bufnr = event.buf
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if not client then
+      return
+    end
 
-		diagnostics()
-		keymaps(bufnr, client)
-	end,
+    -- Highlight the NumColumn with diagnostic output
+    vim.cmd [[
+      exec 'hi ColumnDiagnosticHint guifg=' . synIDattr(hlID('DiagnosticHint'), 'fg')
+      exec 'hi ColumnDiagnosticInfo guifg=' . synIDattr(hlID('DiagnosticInfo'), 'fg')
+      exec 'hi ColumnDiagnosticWarn guifg=' . synIDattr(hlID('DiagnosticWarn'), 'fg')
+      exec 'hi ColumnDiagnosticError guifg=' . synIDattr(hlID('DiagnosticError'), 'fg')
+      hi link SyntasticErrorLine SignColumn
+    ]]
+
+    keymaps(bufnr, client)
+  end,
 })
