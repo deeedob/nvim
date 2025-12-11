@@ -55,7 +55,7 @@ function M.resetTerminalBg()
   end
 
   setup()
-  local b, e = M.get_visual_pos()
+  local b, e = require("utils.buffer").get_visual_pos()
   return vim.api.nvim_buf_get_text(0, b[1] - 1, b[2] - 1, e[1] - 1, e[2], {})
 end
 

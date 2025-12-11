@@ -12,8 +12,7 @@ return {
         clang_format = {
           args = function()
             local default_clang = "file"
-            local has_local_clang =
-              require("utils.files").exists ".clang-format"
+            local has_local_clang = vim.uv.fs_stat(".clang-format")
             if not has_local_clang then
               default_clang = "file:"
                 .. os.getenv "HOME"

@@ -126,6 +126,10 @@ return {
         },
       },
 
+      ghost_text = {
+        enabled = true,
+      },
+
       menu = {
         border = "rounded",
         draw = {
@@ -149,6 +153,25 @@ return {
       list = {
         selection = {
           auto_insert = false,
+        },
+      },
+    },
+
+    cmdline = {
+      keymap = { preset = "inherit" },
+      sources = function()
+        local type = vim.fn.getcmdtype()
+        if type == "/" or type == "?" then
+          return { "buffer" }
+        end
+        if type == ":" or type == "@" then
+          return { "cmdline", "buffer" }
+        end
+        return {}
+      end,
+      completion = {
+        menu = {
+          auto_show = true,
         },
       },
     },
@@ -188,47 +211,26 @@ return {
         then
           return { "buffer" }
         else
-          return { "lazydev", "lsp", "path", "snippets", "buffer" }
+          return { "lsp", "snippets", "buffer", "path" }
         end
       end,
 
+      per_filetype = {
+        lua = { inherit_defaults = true, "lazydev" },
+      },
+
       providers = {
         lsp = {
-          name = "LSP",
-          module = "blink.cmp.sources.lsp",
-          transform_items = function(_, items)
-            return vim.tbl_filter(function(item)
-              return item.kink
-                ~= require("blink.cmp.types").CompletionItemKind.Keyword
-            end, items)
-          end,
+          fallbacks = {}
         },
         path = {
           opts = {
             trailing_slash = true,
             label_trailing_slash = true,
             get_cwd = function(context)
-              return vim.fn.expand(("#%d:p:h"):format(context.bufnr))
+              return vim.fn.getcwd()
             end,
             show_hidden_files_by_default = true,
-          },
-        },
-        buffer = {
-          name = "Buffer",
-          module = "blink.cmp.sources.buffer",
-          opts = {
-            -- default to all visible buffers
-            get_bufnrs = function()
-              return vim
-                .iter(vim.api.nvim_list_wins())
-                :map(function(win)
-                  return vim.api.nvim_win_get_buf(win)
-                end)
-                :filter(function(buf)
-                  return vim.bo[buf].buftype ~= "nofile"
-                end)
-                :totable()
-            end,
           },
         },
         lazydev = {

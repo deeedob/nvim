@@ -190,7 +190,7 @@ return {
       end, { desc = "find [C]ommits (current)" })
 
       vim.keymap.set("v", "<leader>gc", function()
-        local b, e = require("utils.functions").get_visual_pos()
+        local b, e = require("utils.buffer").get_visual_pos()
         return builtin.git_bcommits_range {
           from = b[1],
           to = e[1],

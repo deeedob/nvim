@@ -91,12 +91,7 @@ end, { expr = true })
 
 map("n", "]d", vim.diagnostic.goto_next)
 map("n", "[d", vim.diagnostic.goto_prev)
-vim.keymap.set(
-  "n",
-  "<leader>ld",
-  vim.diagnostic.open_float,
-  { desc = "[D]iagnostic Line", buffer = 0 }
-)
+map("n", "<leader>ld", vim.diagnostic.open_float, { desc = "[D]iagnostic Line"})
 
 -- buffers
 map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer" })

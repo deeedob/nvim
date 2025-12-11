@@ -3,6 +3,7 @@ return {
   dependencies = {
     "nvim-lua/plenary.nvim",
   },
+  ft = { "cmake", "c", "cpp", "objc", "objcpp" },
   init = function()
     local local_cmake = "CMakeLists.txt"
     -- async determine a possible project dir
@@ -15,7 +16,7 @@ return {
           file:close()
           if content:find "project%s*%(" then
             vim.schedule(function()
-              require "ddob.cmake-tools"
+              require "cmake-tools"
             end)
           end
         end
