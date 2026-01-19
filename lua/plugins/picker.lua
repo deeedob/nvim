@@ -2,11 +2,13 @@ return {
 
   {
     "dmtrKovalenko/fff.nvim",
-    build = "cargo build --release",
+    build = function()
+      require("fff.download").download_or_build_binary()
+    end,
     lazy = false, -- plugins is self-lazy
     keys = {
       {
-        "<leader>ff", -- try it if you didn't it is a banger keybinding for a picker
+        "<leader>ff",
         function()
           require("fff").find_files()
         end,
@@ -40,6 +42,11 @@ return {
       {
         "nvim-telescope/telescope-ui-select.nvim",
         dependencies = { "nvim-telescope/telescope.nvim" },
+      },
+
+      {
+        "aaronhallaert/advanced-git-search.nvim",
+        cmd = { "AdvancedGitSearch" },
       },
     },
     config = function()
@@ -76,6 +83,9 @@ return {
           ["ui-select"] = {
             require("telescope.themes").get_dropdown {},
           },
+          advanced_git_search = {
+            -- See Config
+          },
         },
         pickers = {
           find_files = {
@@ -86,6 +96,7 @@ return {
 
       pcall(require("telescope").load_extension, "fzf")
       pcall(require("telescope").load_extension, "ui-select")
+      pcall(require("telescope").load_extension, "advanced_git_search")
 
       local builtin = require "telescope.builtin"
       -- Lsp handlers

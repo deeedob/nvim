@@ -38,7 +38,7 @@ return {
             return ""
           end
           local b_target = cmake.get_build_target()
-          return (b_target and b_target or "X")
+          return (b_target and b_target[1]) or "X"
         end,
         cond = function()
           if not cmake then
