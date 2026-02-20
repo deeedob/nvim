@@ -68,8 +68,6 @@ vim.opt.shiftround = true
 vim.opt.breakindent = true
 vim.opt.linebreak = true
 vim.opt.formatoptions:remove "o"
-vim.opt.foldlevel = 99
-vim.opt.foldlevelstart = 99
 vim.opt.foldtext = "v:lua.NeatFoldText()"
 
 -- >> Search

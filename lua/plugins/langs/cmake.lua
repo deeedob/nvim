@@ -4,37 +4,6 @@ return {
     "nvim-lua/plenary.nvim",
   },
   ft = { "cmake", "c", "cpp", "objc", "objcpp" },
-  init = function()
-    local local_cmake = "CMakeLists.txt"
-    -- async determine a possible project dir
-    vim.uv.fs_stat(local_cmake, function(_, stat)
-      --  Check current dir for a CMakeLists.txt
-      if stat then
-        local file = io.open(local_cmake, "r")
-        if file then
-          local content = file:read "*all"
-          file:close()
-          if content:find "project%s*%(" then
-            vim.schedule(function()
-              require "cmake-tools"
-            end)
-          end
-        end
-      end
-      -- CWD doesn't have a valid CMakeLists.txt. Search the project root
-      local project_root = require("utils.functions").find_project_root()
-      if project_root then
-        local proj = vim.uv.fs_stat(project_root .. "/CMakeLists.txt")
-        if proj then
-          -- We expect that this CMakeLists.txt file in root is already valid
-          vim.schedule(function()
-            require("cmake-tools").select_cwd(proj)
-          end)
-        end
-      end
-    end)
-    return true
-  end,
   keys = {
     { "<leader>cg", ":CMakeGenerate<CR>", desc = "CMake Configure" },
     { "<leader>cb", ":CMakeBuild<CR>", desc = "CMake Build" },
@@ -103,13 +72,14 @@ return {
       cmake_use_preset = true,
       cmake_regenerate_on_save = false,
       cmake_generate_options = {
-        "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
-        "-DQT_QML_GENERATE_QMLLS_INI=1",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=1"
       },
       cmake_build_options = { "-j " .. tostring(nproc) },
       cmake_build_directory = "cmake-build/${variant:buildType}",
-      cmake_soft_link_compile_commands = false,
-      cmake_compile_commands_from_lsp = false,
+      cmake_compile_commands_options = {
+        action = "lsp", -- available options: soft_link, copy, lsp, none
+                          -- lsp:       this will automatically set compile commands file location using lsp
+      },
       cmake_kits_path = vim.fn.stdpath "config" .. "/res/cmake-kits.json",
       cmake_dap_configuration = {
         name = "cpp",
@@ -148,6 +118,7 @@ return {
         executor = { enabled = false },
       },
       cmake_virtual_text_support = false,
+      cmake_use_scratch_buffer = false,
     }
   end,
 }

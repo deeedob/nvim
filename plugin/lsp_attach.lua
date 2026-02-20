@@ -109,7 +109,7 @@ local function keymaps(bufnr, client)
   vim.keymap.set(
     "n",
     "<leader>ls",
-    vim.lsp.buf.document_symbol,
+    trouble.document_symbol,
     { desc = "[S]ymbols", buffer = 0 }
   )
 end

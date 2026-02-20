@@ -14,7 +14,7 @@ return {
     }
     lint.linters_by_ft = {
       -- python = { "ruff" },
-      cmake = { "cmakelint" },
+      -- cmake = { "cmakelint" },
       proto = { "buf_lint" },
       sh = { "shellcheck" },
       markdown = { "markdownlint" },

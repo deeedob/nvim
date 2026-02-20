@@ -6,8 +6,10 @@ return {
 
   {
     "folke/lazydev.nvim",
-    ft = "lua",
+    -- ft = "lua",
+    lazy = false,
     opts = {
+      -- lua_root = false,
       library = {
         { path = "${3rd}/luv/library", words = { "vim%.uv" } },
       },

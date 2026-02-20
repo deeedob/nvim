@@ -44,7 +44,7 @@ return {
         enable_autosnippets = false,
       },
     },
-    "lazydev.nvim",
+    "folke/lazydev.nvim",
   },
 
   opts = {
@@ -211,7 +211,7 @@ return {
         then
           return { "buffer" }
         else
-          return { "lsp", "snippets", "buffer", "path" }
+          return { "lsp", "snippets", "buffer", "path", "lazydev" }
         end
       end,
 

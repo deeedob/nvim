@@ -1,3 +1,41 @@
+local function pick_executable(opts)
+  opts = opts or {}
+  local fzf = require "fzf-lua"
+  local cwd = opts.cwd or vim.fn.getcwd()
+
+  return coroutine.create(function(coro)
+    -- Use fd if available; otherwise fall back to find.
+    local cmd = [[sh -c '
+      if command -v fd >/dev/null 2>&1; then
+        fd --hidden --no-ignore --type x --follow --exclude .git .
+      else
+        find . -type f -perm -111 -print 2>/dev/null | sed "s#^\./##"
+      fi
+    ']]
+
+    fzf.fzf_exec(cmd, {
+      cwd = cwd,
+      prompt = opts.prompt or "Executable❯ ",
+      actions = {
+        ["default"] = function(selected)
+          local choice = selected and selected[1] or nil
+          if not choice or choice == "" then
+            coroutine.resume(coro, nil)
+            return
+          end
+          -- Normalize ./path -> /abs/path
+          local abs =
+            vim.fn.fnamemodify(cwd .. "/" .. choice:gsub("^%./", ""), ":p")
+          coroutine.resume(coro, abs)
+        end,
+        ["esc"] = function()
+          coroutine.resume(coro, nil)
+        end,
+      },
+    })
+  end)
+end
+
 return {
   "mfussenegger/nvim-dap",
   dependencies = {
@@ -12,7 +50,6 @@ return {
       cmd = { "DapInstall", "DapUninstall" },
       dependencies = {
         "mason.nvim",
-        "telescope.nvim",
       },
     },
     "theHamsta/nvim-dap-virtual-text",
@@ -179,7 +216,31 @@ return {
     },
   },
   config = function()
-    require("dapui").setup {}
+    -- require("dapui").setup {}
+    require("dapui").setup {
+      layouts = {
+        -- 4 boxes on the left
+        {
+          position = "left",
+          size = 50,
+          elements = {
+            { id = "watches", size = 0.00 },
+            { id = "breakpoints", size = 0.3 },
+            { id = "console", size = 0.5 },
+            { id = "repl", size = 0.25 },
+          },
+        },
+
+        {
+          position = "bottom",
+          size = 14,
+          elements = {
+            { id = "scopes", size = 0.7 },
+            { id = "stacks", size = 0.3 },
+          },
+        },
+      },
+    }
     require("nvim-dap-virtual-text").setup {}
 
     local dap = require "dap"
@@ -272,17 +333,12 @@ return {
           require("mason-nvim-dap").default_setup(config)
         end,
         cppdbg = function(config)
-          local pickers = require "telescope.pickers"
-          local finders = require "telescope.finders"
-          local conf = require("telescope.config").values
-          local actions = require "telescope.actions"
-          local action_state = require "telescope.actions.state"
           config.configurations = {
             {
               name = "gdb: attach",
               type = "cppdbg",
               request = "attach",
-              cwd = "${workspacefolder}",
+              cwd = "${workspaceFolder}",
               -- processid = require('dap.utils').pick_process,
               stoponentry = true,
               setupcommands = {
@@ -297,31 +353,11 @@ return {
               name = "gdb: launch",
               type = "cppdbg",
               request = "launch",
-              cwd = "${workspacefolder}",
+              cwd = "${workspaceFolder}",
               program = function()
-                return coroutine.create(function(coro)
-                  local opts = {}
-                  pickers
-                    .new(opts, {
-                      prompt_title = "path to executable",
-                      finder = finders.new_oneshot_job(
-                        { "fd", "--hidden", "--no-ignore", "--type", "x" },
-                        {}
-                      ),
-                      sorter = conf.generic_sorter(opts),
-                      attach_mappings = function(buffer_number)
-                        actions.select_default:replace(function()
-                          actions.close(buffer_number)
-                          coroutine.resume(
-                            coro,
-                            action_state.get_selected_entry()[1]
-                          )
-                        end)
-                        return true
-                      end,
-                    })
-                    :find()
-                end)
+                return pick_executable {
+                  prompt = "Path to executable (cppdbg)❯ ",
+                }
               end,
               setupcommands = {
                 {
@@ -336,25 +372,26 @@ return {
         end,
         -- https://github.com/vadimcn/codelldb/blob/master/MANUAL.md
         codelldb = function(config)
-          local pickers = require "telescope.pickers"
-          local finders = require "telescope.finders"
-          local conf = require("telescope.config").values
-          local actions = require "telescope.actions"
-          local action_state = require "telescope.actions.state"
-
           local initCmd = function()
             local commands = {}
+
             local sources =
               { vim.env.HOME .. "/.lldbinit", vim.fn.getcwd() .. "/.lldbinit" }
-            for idx, source in ipairs(sources) do
-              local file = io.open(source, "r")
-              if file then
-                local command = "command source " .. source
-                table.insert(commands, command)
-                file:close()
+            for _, source in ipairs(sources) do
+              local f = io.open(source, "r")
+              if f then
+                table.insert(commands, "command source " .. source)
+                f:close()
               end
             end
-            print("cmd ", commands)
+            table.insert(
+              commands,
+              [[settings set frame-format "${frame.index}: ${frame.pc} ${function.name-with-args} @ ${line.file.basename}:${line.number}\n"]]
+            )
+            table.insert(
+              commands,
+              [[settings set target.process.thread.step-avoid-regexp "std::|__gnu_cxx|QGrpc|QtPrivate"]]
+            )
             return commands
           end
           config.configurations = {
@@ -382,29 +419,9 @@ return {
               initCommands = initCmd,
 
               program = function()
-                return coroutine.create(function(coro)
-                  local opts = {}
-                  pickers
-                    .new(opts, {
-                      prompt_title = "Path to executable",
-                      finder = finders.new_oneshot_job(
-                        { "fd", "--hidden", "--no-ignore", "--type", "x" },
-                        {}
-                      ),
-                      sorter = conf.generic_sorter(opts),
-                      attach_mappings = function(buffer_number)
-                        actions.select_default:replace(function()
-                          actions.close(buffer_number)
-                          coroutine.resume(
-                            coro,
-                            action_state.get_selected_entry()[1]
-                          )
-                        end)
-                        return true
-                      end,
-                    })
-                    :find()
-                end)
+                return pick_executable {
+                  prompt = "Path to executable (codelldb)❯ ",
+                }
               end,
             },
           }
@@ -434,6 +451,83 @@ return {
       },
     }
 
+    local lldb_dap_cmd = "/usr/bin/lldb-dap"
+    if vim.fn.executable(lldb_dap_cmd) ~= 1 then
+      lldb_dap_cmd = "/usr/bin/lldb-vscode"
+      -- TODO: DON"T add then!
+    end
+
+    dap.adapters.lldb_dap = {
+      type = "executable",
+      command = lldb_dap_cmd,
+      name = "lldb_dap",
+    }
+
+    local lldb_dap_init_cmd = function()
+      local commands = {}
+
+      local sources =
+        { vim.env.HOME .. "/.lldbinit", vim.fn.getcwd() .. "/.lldbinit" }
+      for _, source in ipairs(sources) do
+        local f = io.open(source, "r")
+        if f then
+          table.insert(commands, "command source " .. source)
+          f:close()
+        end
+      end
+      table.insert(
+        commands,
+        [[settings set frame-format "${frame.index}: ${frame.pc} ${function.name-with-args} @ ${line.file.basename}:${line.number}\n"]]
+      )
+      table.insert(
+        commands,
+        [[settings set target.process.thread.step-avoid-regexp "std::|__gnu_cxx|QGrpc|QtPrivate"]]
+      )
+    end
+
+    local inherit_env = function()
+      local variables = {}
+      for k, v in pairs(vim.fn.environ()) do
+        table.insert(variables, string.format("%s=%s", k, v))
+      end
+      return variables
+    end
+
+    local lldb_dap_configs = {
+      {
+        name = "LLDB-DAP: Launch",
+        type = "lldb_dap",
+        request = "launch",
+        cwd = "${workspaceFolder}",
+        program = function()
+          return pick_executable { prompt = "Path to executable (lldb-dap)❯ " }
+        end,
+        args = {},
+        stopOnEntry = false,
+
+        initCommands = lldb_dap_init_cmd,
+        env = inherit_env,
+
+        enableAutoVariableSummaries = true,
+        enableSyntheticChildDebugging = true,
+      },
+      {
+        name = "LLDB-DAP: Attach",
+        type = "lldb_dap",
+        request = "attach",
+        pid = require("dap.utils").pick_process,
+        cwd = "${workspaceFolder}",
+        args = {},
+        stopOnEntry = false,
+
+        initCommands = lldb_dap_init_cmd,
+        env = inherit_env,
+
+        enableAutoVariableSummaries = true,
+        enableSyntheticChildDebugging = true,
+      },
+    }
+
     dap.configurations.lua = {
       {
         type = "nlua",
@@ -450,5 +544,12 @@ return {
         port = config.port or 8086,
       }
     end
+    dap.configurations.cpp = dap.configurations.cpp or {}
+    dap.configurations.c = dap.configurations.c or {}
+    dap.configurations.rust = dap.configurations.rust or {}
+
+    vim.list_extend(dap.configurations.cpp, lldb_dap_configs)
+    vim.list_extend(dap.configurations.c, lldb_dap_configs)
+    vim.list_extend(dap.configurations.rust, lldb_dap_configs)
   end,
 }

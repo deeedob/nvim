@@ -5,6 +5,39 @@ local function stop_server(server, force)
   return true
 end
 
+local function restart_server(name, force)
+  local function start_fresh()
+    local cfg = vim.deepcopy(vim.lsp.config[name] or {})
+    cfg.name = cfg.name or name
+    vim.lsp.start(cfg, { bufnr = 0 })
+  end
+
+  local clients = vim.lsp.get_clients({ name = name })
+  if #clients == 0 then
+    -- nothing running; just start it
+    start_fresh()
+    return true
+  end
+
+  -- Stop is async; wait until the client list is empty before starting.
+  local force_ms = force and 1000 or nil
+  for _, client in ipairs(clients) do
+    client:stop(force_ms)
+  end
+
+  local timer = vim.loop.new_timer()
+  timer:start(50, 50, function()
+    local still = vim.lsp.get_clients({ name = name })
+    if #still == 0 then
+      timer:stop()
+      timer:close()
+      vim.schedule(start_fresh)
+    end
+  end)
+
+  return true
+end
+
 --- Return a cmd separated by spaces
 ---@param cmdline string
 ---@return string[]
@@ -139,12 +172,12 @@ end, {
 vim.api.nvim_create_user_command("LspRestart", function(opts)
   local server = opts.args
   vim.notify(
-    string.format("Restartting %s", server),
+    string.format("Restarting %s", server),
     vim.log.levels.INFO,
     { title = "LspRestart" }
   )
-  if stop_server(server) then
-    vim.lsp.enable(server, true)
+  if not restart_server(server, opts.bang) then
+    vim.notify(("%s is not running"):format(server), vim.log.levels.WARN, { title = "LspRestart" })
   end
 end, {
   bang = true,

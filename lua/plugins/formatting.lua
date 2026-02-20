@@ -30,7 +30,7 @@ return {
       formatters_by_ft = {
         lua = { "stylua" },
         cpp = { "clang_format" },
-        cmake = { "cmake_format" },
+        -- cmake = { "cmake_format" },
         sh = { "shfmt" },
         rust = { "rustfmt" },
         proto = { "buf" },

@@ -17,30 +17,93 @@ map("t", "<C-k>", "<cmd>wincmd k<cr>", { desc = "Focus upper window", silent = t
 map("t", "<C-l>", "<cmd>wincmd l<cr>", { desc = "Focus right window", silent = true })
 
 map("n", "gf", function ()
-  local function clean(name)
-    name = name:gsub("\n", "")
-    name = name:match( "^[^%s]+")
-    return name
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  col = col + 1 -- nvim_win_get_cursor is 0-indexed for columns
+  -- Get current line and next line (for wrapped text)
+  local lines = vim.api.nvim_buf_get_lines(0, row - 1, row + 1, false)
+  local text = table.concat(lines, "\n")
+  -- Find the word/path under cursor by expanding outward
+  -- Look for continuous non-whitespace that might be a path
+  local line = lines[1]
+  -- Find start of path (go backward from cursor)
+  local start_pos = col
+  while start_pos > 1 and line:sub(start_pos - 1, start_pos - 1):match("[^%s]") do
+    start_pos = start_pos - 1
   end
-
-  local filename = vim.fn.expand("<cfile>")
-  local exists = vim.fn.filereadable(filename)
-
-  -- TODO
-  -- if exists == 0 then
-  --   filename = clean(filename)
-  --   exists = vim.fn.filereadable(filename)
-  --   print("new: " .. filename)
-  -- end
-
-  if exists == 0 then
-    vim.notify("Can't goto file: " .. filename)
+  -- Find end of path (go forward from cursor)
+  local end_pos = col
+  while end_pos <= #line and line:sub(end_pos, end_pos):match("[^%s]") do
+    end_pos = end_pos + 1
+  end
+  -- Extract the token under cursor
+  local token = line:sub(start_pos, end_pos - 1)
+  -- Try to parse "path:line:col" or "path:line" or just "path"
+  local path, lnum, cnum
+  -- Pattern 1: path:line:col
+  path, lnum, cnum = token:match("^(.+):(%d+):(%d+)")
+  -- Pattern 2: path:line
+  if not path then
+    path, lnum = token:match("^(.+):(%d+)")
+  end
+  -- Pattern 3: just path
+  if not path then
+    path = token:match("^(.+)$")
+  end
+  if not path or path == "" then
+    vim.notify("No file path found under cursor", vim.log.levels.WARN)
     return
   end
+  -- Expand path (handles ~, ., .., $VAR)
+  path = vim.fn.expand(path)
+  -- If path is not absolute, try to find it relative to current file or cwd
+  if not vim.startswith(path, "/") then
+    local current_file_dir = vim.fn.expand("%:p:h")
+    local candidates = {
+      path,  -- relative to cwd
+      current_file_dir .. "/" .. path,  -- relative to current file
+    }
+    local found = false
+    for _, candidate in ipairs(candidates) do
+      if vim.fn.filereadable(candidate) == 1 then
+        path = candidate
+        found = true
+        break
+      end
+    end
+    if not found then
+      vim.notify("File not found: " .. path, vim.log.levels.WARN)
+      return
+    end
+  else
+    -- Absolute path - check if it exists
+    if vim.fn.filereadable(path) == 0 then
+      vim.notify("File not readable: " .. path, vim.log.levels.WARN)
+      return
+    end
+  end
+  -- Find the best window to open the file in
+  local current_buf = vim.api.nvim_win_get_buf(vim.api.nvim_get_current_win())
+  local is_terminal = vim.bo[current_buf].buftype == "terminal"
 
-  vim.cmd("wincmd w")
-  vim.cmd("edit " .. filename)
-
+  if is_terminal then
+    -- Jump to the previous window (usually your main editor)
+    vim.cmd("wincmd p")
+  end
+  -- Open the file
+  vim.cmd("edit " .. vim.fn.fnameescape(path))
+  -- Jump to line and column if specified
+  if lnum then
+    local line_num = tonumber(lnum)
+    local col_num = cnum and (tonumber(cnum) - 1) or 0  -- columns are 0-indexed
+    -- Ensure we don't go past the end of the file
+    local line_count = vim.api.nvim_buf_line_count(0)
+    if line_num > line_count then
+      line_num = line_count
+    end
+    vim.api.nvim_win_set_cursor(0, { line_num, col_num })
+    -- Center the screen on the target line
+    vim.cmd("normal! zz")
+  end
 end, { desc = "Goto file", noremap = true, silent = true } )
 
 -- Resize
@@ -80,7 +143,6 @@ if vim.opt.wrap:get() then
 end
 
 map("n", "<CR>", function()
-  ---@diagnostic disable-next-line: undefined-field
   if vim.opt.hlsearch:get() then
     vim.cmd.nohl()
     return ""
@@ -89,16 +151,51 @@ map("n", "<CR>", function()
   end
 end, { expr = true })
 
-map("n", "]d", vim.diagnostic.goto_next)
-map("n", "[d", vim.diagnostic.goto_prev)
-map("n", "<leader>ld", vim.diagnostic.open_float, { desc = "[D]iagnostic Line"})
+-- Diagnostics
+
+local diag_focus_id = "diagnostic_float"
+local function diag_open(scope)
+  vim.diagnostic.open_float(nil, {
+    scope = scope or "cursor",
+    focusable = true,
+    focus_id = diag_focus_id,
+    source = "if_many",
+    close_events = { "CursorMoved", "CursorMovedI", "InsertEnter", "InsertEnter" },
+  })
+end
+
+local function diag_jump(count)
+  local jumped = vim.diagnostic.jump({ count = count, wrap = true })
+  if jumped then
+    vim.schedule(function() diag_open("cursor") end)
+  end
+end
+
+map("n", "]d", function()
+  diag_jump(1)
+end, { desc = "Next diagnostic" }
+)
+map("n", "[d", function()
+  diag_jump(-1)
+end, { desc = "Prev diagnostic" }
+)
+map("n", "D", function()
+  diag_open("line")
+end, { desc = "[D]iagnostic Line"}
+)
+
+map("n", "F", function()
+  if vim.fn.foldlevel(".") > 0 then
+    vim.cmd("normal! za")
+  end
+end, { noremap = true, silent = true })
 
 -- buffers
 map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
 map("n", "L", "<cmd>bnext<cr>", { desc = "Next buffer" })
 map("n", "<leader>bm", ":tabnew %<cr>", { desc = "Buffer fullscreen" })
 map("n", "C", ":b#|bd#<cr>", { desc = "Close current buffer" })
-map("n", "D", ":bd<cr>", { desc = "Delete current buffer" })
+-- map("n", "D", ":bd<cr>", { desc = "Delete current buffer" })
 map("n", "+", "<C-w>=", { desc = "Equalize buffers" })
 
 -- various

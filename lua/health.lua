@@ -23,8 +23,6 @@ local check_version = function()
 end
 
 local check_external_reqs = function()
-  -- Basic utils: `git`, `make`, `unzip`
-  -- neovim-remote ripgrep fd tree-sitter cargo npm wget luarocks sqlite
   for _, exe in ipairs {
     "git",
     "make",
@@ -37,6 +35,7 @@ local check_external_reqs = function()
     "cmake",
     "nvr",
     "typos",
+    "fzf"
   } do
     local is_executable = vim.fn.executable(exe) == 1
     if is_executable then

@@ -1,9 +1,11 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "master",
     build = ":TSUpdate",
     event = "FileType",
     config = function()
+      require("nvim-treesitter.install").prefer_git = true
       require("nvim-treesitter.configs").setup {
         auto_install = true,
         ignore_install = {},

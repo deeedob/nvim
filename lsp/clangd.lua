@@ -9,23 +9,27 @@ local base_cmd = {
   "--background-index",
   "--pch-storage=memory",
   "--enable-config",
+  "--query-driver=/usr/bin/g++",
 }
 
 local root_markers = {
-  ".clangd",
-  ".clang-tidy",
-  ".clang-format",
   ".git",
+  ".clang-format",
+  ".clang-tidy",
+  ".clangd",
 }
 
 return {
   cmd = function(dispatchers, config)
     local cmd = vim.deepcopy(base_cmd)
 
-    if vim.lsp.log.get_level() <= vim.log.levels.DEBUG then
+    local loglevel = vim.lsp.log.get_level()
+    if loglevel <= vim.log.levels.DEBUG then
       table.insert(cmd, "--log=verbose")
-    elseif vim.lsp.log.get_level() < vim.log.levels.ERROR then
+    elseif loglevel < vim.log.levels.ERROR then
       table.insert(cmd, "--log=info")
+    else
+      table.insert(cmd, "--log=erro")
     end
 
     local cmake = require "cmake-tools"
@@ -46,35 +50,27 @@ return {
   end,
 
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
+  reuse_client = function(client, config)
+    return true
+  end,
   root_markers = root_markers,
 
   init_options = {
-    fallbackFlags = {
-      "-Wall",
-      "-Wextra",
-      "-Wshadow",
-      "-Wnon-virtual-dtor",
-      "-Wold-style-cast",
-      "-Wcast-align",
-      "-Wunused",
-      "-Woverloaded-virtual",
-      "-Wpedantic",
-      "-Wno-missing-prototypes",
-      "-Wconversion",
-      "-Wsign-conversion",
-      "-Wnull-dereference",
-      "-Wdouble-promotion",
-      "-Wformat=2",
-    },
+    usePlaceholders = true,
+    completeUnimported = true,
+    clangdFileStatus = true,
   },
 
   capabilities = {
     textDocument = {
+      semanticHighlightingCapabilities = {
+        semanticHighlighting = true,
+      },
       completion = {
         editsNearCursor = true,
       },
     },
-    offsetEncoding = { "utf-8", "utf-16" },
+    -- offsetEncoding = { "utf-8", "utf-16" }, deprecated. Use positionEncodings
   },
 
   on_attach = function(client, bufnr)

@@ -865,6 +865,15 @@ local plugin_groups = {
   -- Inline
   InclineNormal = { fg = theme.syn.constant_builtin },
   InclineNormalNC = { fg = theme.ui.special },
+
+  UfoFoldedFg = { fg = theme.ui.special },
+  UfoFoldedBg = { fg = "NONE", bg = theme.ui.bg_p1 },
+  UfoPreviewSbar = { link = "PmenuSbar" },
+  UfoPreviewThumb = { link = "PmenuThumb" },
+  UfoPreviewWinBar = { link = "UfoFoldedBg" },
+  UfoPreviewCursorLine = { link = "Visual" },
+  UfoFoldedEllipsis = { link = "Comment" },
+  UfoCursorFoldedLine = { link = "CursorLine" },
 }
 
 local groups = vim.tbl_extend(

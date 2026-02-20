@@ -1,226 +1,447 @@
-return {
+local function visual_line_range()
+  -- returns (from, to) line numbers (1-indexed)
+  local a = vim.fn.getpos("v")[2]
+  local b = vim.fn.getpos(".")[2]
+  if a > b then
+    a, b = b, a
+  end
+  return a, b
+end
 
-  {
-    "dmtrKovalenko/fff.nvim",
-    build = function()
-      require("fff.download").download_or_build_binary()
-    end,
-    lazy = false, -- plugins is self-lazy
-    keys = {
-      {
-        "<leader>ff",
-        function()
-          require("fff").find_files()
-        end,
-        desc = "FFFind files",
-      },
+local function get_visual_text()
+  -- returns selected text lines (best-effort, works for char/linewise)
+  local mode = vim.fn.mode()
+  if mode ~= "v" and mode ~= "V" and mode ~= "\22" then
+    return {}
+  end
+  local srow, scol = unpack(vim.api.nvim_buf_get_mark(0, "<"))
+  local erow, ecol = unpack(vim.api.nvim_buf_get_mark(0, ">"))
+  if srow == 0 or erow == 0 then
+    return {}
+  end
+
+  if srow > erow or (srow == erow and scol > ecol) then
+    srow, erow = erow, srow
+    scol, ecol = ecol, scol
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(0, srow - 1, erow, false)
+  if #lines == 0 then
+    return {}
+  end
+
+  if mode == "v" then
+    lines[#lines] = string.sub(lines[#lines], 1, ecol)
+    lines[1] = string.sub(lines[1], scol + 1)
+  end
+  return lines
+end
+
+local function branches_for_code()
+  -- visual: search snippet with git log -S (first commit introducing snippet)
+  -- normal: blame current line and use its commit
+  local commit = nil
+  local mode = vim.fn.mode()
+
+  if mode == "v" or mode == "V" or mode == "\22" then
+    local snippet_lines = get_visual_text()
+    local snippet = table.concat(snippet_lines, "\n")
+    if snippet == "" then
+      vim.notify("No snippet selected!", vim.log.levels.WARN)
+      return
+    end
+    local log_cmd = "git log -S"
+      .. vim.fn.shellescape(snippet)
+      .. " --pretty=format:%H --reverse | head -n1"
+    commit = vim.fn.system(log_cmd):gsub("%s+", "")
+    if commit == "" then
+      vim.notify("Snippet not found in history!", vim.log.levels.WARN)
+      return
+    end
+  else
+    local filepath = vim.fn.expand "%:p"
+    if filepath == "" then
+      vim.notify("No file found!", vim.log.levels.WARN)
+      return
+    end
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+    local blame_cmd = "git blame -L "
+      .. line
+      .. ","
+      .. line
+      .. " --porcelain "
+      .. vim.fn.shellescape(filepath)
+    local blame_output = vim.fn.systemlist(blame_cmd)
+    if vim.v.shell_error ~= 0 or #blame_output == 0 then
+      vim.notify("Could not retrieve blame info", vim.log.levels.WARN)
+      return
+    end
+    commit = (blame_output[1] or ""):match "^(%w+)"
+    if not commit then
+      vim.notify("Could not parse commit hash", vim.log.levels.WARN)
+      return
+    end
+  end
+
+  local branches = vim.fn.systemlist("git branch -a --contains " .. commit)
+  if vim.v.shell_error ~= 0 or #branches == 0 then
+    vim.notify("No branches found for commit " .. commit, vim.log.levels.WARN)
+    return
+  end
+
+  for i, br in ipairs(branches) do
+    br = br:gsub("^%s*", ""):gsub("%s*$", ""):gsub("^%*", "")
+    branches[i] = br
+  end
+
+  local fzf_lua = require "fzf-lua"
+  local actions = require "fzf-lua.actions"
+
+  -- show branches in fzf; default action copies branch name + notifies
+  fzf_lua.fzf_exec(branches, {
+    prompt = "Branches for " .. commit:sub(1, 8) .. "> ",
+    preview = "echo {} && echo && git log --oneline --decorate -n 40 {} 2>/dev/null",
+    actions = {
+      -- enter: copy branch to + and print
+      ["default"] = function(selected)
+        local br = selected[1]
+        if not br or br == "" then
+          return
+        end
+        pcall(vim.fn.setreg, "+", br)
+        vim.notify("Copied branch: " .. br)
+      end,
+
+      -- ctrl-l: open commits picker for the branch (quick drill-down)
+      ["ctrl-l"] = function(selected)
+        local br = selected[1]
+        if not br or br == "" then
+          return
+        end
+        fzf_lua.fzf_exec(
+          "git log --oneline --decorate " .. vim.fn.shellescape(br),
+          {
+            prompt = "Commits " .. br .. "> ",
+            preview = "git show --color=always {1} | sed -n '1,200p'",
+            actions = {
+              ["default"] = function(sel)
+                local hash = (sel[1] or ""):match "^(%w+)"
+                if hash then
+                  pcall(vim.fn.setreg, "+", hash)
+                  vim.notify("Copied commit: " .. hash)
+                end
+              end,
+              ["ctrl-y"] = actions.copy_to_clipboard,
+            },
+          }
+        )
+      end,
     },
-    opts = {
-      debug = {
-        enabled = true, -- we expect your collaboration at least during the beta
-        show_scores = true, -- to help us optimize the scoring system, feel free to share your scores!
-      },
-    },
-  },
+  })
+end
 
-  {
-    "nvim-telescope/telescope.nvim",
-    cond = function()
-      return not vim.g.vscode
-    end,
-    cmd = "Telescope",
-    event = "VeryLazy",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
+local function git_bcommits_range()
+  local fzf = require "fzf-lua"
+  local actions = require "fzf-lua.actions"
 
-      {
-        "nvim-telescope/telescope-fzf-native.nvim",
-        dependencies = { "nvim-telescope/telescope.nvim" },
-        build = "make",
-      },
+  local abs = vim.fn.expand "%:p"
+  if abs == "" then
+    vim.notify("No file found!", vim.log.levels.WARN)
+    return
+  end
 
-      {
-        "nvim-telescope/telescope-ui-select.nvim",
-        dependencies = { "nvim-telescope/telescope.nvim" },
-      },
+  local from, to = visual_line_range()
 
-      {
-        "aaronhallaert/advanced-git-search.nvim",
-        cmd = { "AdvancedGitSearch" },
-      },
-    },
-    config = function()
-      local data = assert(vim.fn.stdpath "data") --[[@as string]]
+  local root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
+  if vim.v.shell_error ~= 0 or not root or root == "" then
+    vim.notify("Not in a git repo", vim.log.levels.WARN)
+    return
+  end
 
-      require("telescope").setup {
-        defaults = {
-          initial_mode = "insert",
-          file_ignore_patterns = {
-            ".git/",
-            "%.svg",
-            "%.png",
-            "%.jpeg",
-            "%.jpg",
-          },
-          vimgrep_arguments = {
-            "rg",
-            "--color=never",
-            "--no-heading",
-            "--with-filename",
-            "--line-number",
-            "--column",
-            "--smart-case",
-            "--hidden",
-          },
-        },
-        extensions = {
-          wrap_results = true,
-          undo = { use_delta = true },
-          fzf = {
-            fuzzy = true, -- false will only do exact matching
-            case_mode = "smart_case", -- or "ignore_case" or "respect_case"
-          },
-          ["ui-select"] = {
-            require("telescope.themes").get_dropdown {},
-          },
-          advanced_git_search = {
-            -- See Config
-          },
-        },
-        pickers = {
-          find_files = {
-            hidden = true,
-          },
-        },
-      }
-
-      pcall(require("telescope").load_extension, "fzf")
-      pcall(require("telescope").load_extension, "ui-select")
-      pcall(require("telescope").load_extension, "advanced_git_search")
-
-      local builtin = require "telescope.builtin"
-      -- Lsp handlers
-      vim.lsp.handlers["callHierarchy/incomingCalls"] =
-        vim.lsp.with(builtin.lsp_incoming_calls, {
-          trim_text = true,
-        })
-
-      vim.lsp.handlers["callHierarchy/outgoingCalls"] =
-        vim.lsp.with(builtin.lsp_outgoing_calls, {
-          trim_text = true,
-        })
-
-      -- Keymaps
-      vim.keymap.set("n", "<leader>lv", function()
-        builtin.lsp_definitions { jump_type = "vsplit" }
-      end, { desc = "[D]efinition Vsplit", buffer = 0 })
-
-      vim.keymap.set("n", "<leader>lh", function()
-        require("telescope.builtin").lsp_definitions { jump_type = "split" }
-      end, { desc = "[D]efinition HSplit", buffer = 0 })
-
-      vim.keymap.set("n", "<leader>/", function()
-        builtin.current_buffer_fuzzy_find {
-          require("telescope.themes").get_dropdown {
-            winblend = 10,
-            previewer = false,
-          },
-        }
-      end, { desc = "current buffer fuzzy" })
-
-      vim.keymap.set(
-        "n",
-        "<leader>fw",
-        builtin.live_grep,
-        { desc = "[w]ords (root)" }
+  -- Prefer tracked relpath
+  local rel = vim.fn.systemlist(
+    ("git -C %s ls-files --full-name -- %s"):format(
+      vim.fn.shellescape(root),
+      vim.fn.shellescape(abs)
+    )
+  )[1]
+  if vim.v.shell_error ~= 0 or not rel or rel == "" then
+    -- fallback relpath
+    rel = vim.fn.systemlist(
+      ("python3 - <<'PY'\nimport os\nroot=%q\nabs=%q\nprint(os.path.relpath(abs, root))\nPY"):format(
+        root,
+        abs
       )
+    )[1]
+  end
 
-      vim.keymap.set("n", "<leader>fW", function()
-        builtin.live_grep {
-          cwd = require("telescope.utils").buffer_dir(),
-        }
-      end, { desc = "[W]ords (current)" })
+  local pretty =
+    [[%C(yellow)%h%Creset %Cgreen(%><(12)%cr%><|(12))%Creset %s %C(blue)<%an>%Creset]]
 
-      vim.keymap.set("n", "<leader>ft", function()
-        builtin.live_grep {
-          type_filter = vim.bo.filetype,
-        }
-      end, { desc = "words by f[t] (current)" })
+  local cmd = [[git log --no-patch --color --pretty=format:"]]
+    .. pretty
+    .. [[" -L ]]
+    .. tostring(from)
+    .. ","
+    .. tostring(to)
+    .. ":"
+    .. vim.fn.shellescape(rel)
 
-      vim.keymap.set("n", "<leader>fT", function()
-        builtin.live_grep {
-          type_filter = vim.bo.filetype,
-          search_dirs = { "/" },
-          disable_coordinates = true,
-        }
-      end, { desc = "words by F[T] (global)" })
+  fzf.fzf_exec(cmd, {
+    cwd = root,
+    prompt = ("BCommits %d-%d❯ "):format(from, to),
 
-      -- vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "files (root)" })
+    -- This matches how fzf-lua git pickers behave (ANSI + hash as first token)
+    fzf_opts = { ["--ansi"] = "" },
 
-      -- vim.keymap.set("n", "<leader>fF", function()
-      --   builtin.find_files {
-      --     cwd = require("telescope.utils").buffer_dir(),
-      --   }
-      -- end, { desc = "[F]iles (current)" })
+    -- Same preview idea as fzf-lua bcommits
+    preview = "git show --color {1} -- " .. vim.fn.shellescape(rel),
 
-      vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "[b]uffers" })
-      vim.keymap.set("n", "<leader>fr", builtin.resume, { desc = "[r]esume" })
+    actions = {
+      ["enter"] = actions.git_buf_edit,
+      ["ctrl-s"] = actions.git_buf_split,
+      ["ctrl-v"] = actions.git_buf_vsplit,
+      ["ctrl-t"] = actions.git_buf_tabedit,
+      ["ctrl-y"] = { fn = actions.git_yank_commit, exec_silent = true },
+    },
+  })
+end
 
-      vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "[h]elp" })
-      vim.keymap.set("n", "<leader>fH", function()
-        return builtin.highlights {}
-      end, { desc = "[H]ighlights" })
+local function files_src_first()
+  -- Keep fzf-lua's `files` provider UI, but supply a custom command.
+  -- `--no-sort` is the key for "src has more weight": it keeps input order.
+  require("fzf-lua").files({
+    prompt = "Files❯ ",
+    cmd = [[sh -c '
+      norm() { sed "s#^\./##"; }
 
-      vim.keymap.set("n", "<leader>fm", builtin.man_pages, { desc = "[m]an" })
-      vim.keymap.set("n", "<leader>fk", builtin.keymaps, { desc = "[k]eymaps" })
+      if command -v fd >/dev/null 2>&1; then
+        fd --color=never --hidden --type f --type l --exclude .git . src 2>/dev/null | norm
+        fd --color=never --hidden --type f --type l --exclude .git . .  2>/dev/null | norm \
+          | grep -v -E "^(src|include)/"
+      else
+        find src -type f -print 2>/dev/null | norm
+        find . -type f -print 2>/dev/null | norm \
+          | grep -v -E "^(src|include)/"
+      fi
+    ']],
+    -- important: keep provider formatting/icons; just adjust fzf behavior
+    fzf_opts = {
+      ["--no-sort"] = "",         -- <<< makes "src first" win over scoring
+      ["--tiebreak"] = "index",   -- harmless, keeps stable ordering
+    },
+  })
+end
 
-      vim.keymap.set("n", "<leader>fc", function()
-        return builtin.find_files { cwd = vim.fn.stdpath "config" }
-      end, { desc = "[c]onfig (user)" })
-      vim.keymap.set("n", "<leader>fC", function()
-        return builtin.find_files {
-          cwd = vim.fs.joinpath(data, "lazy"),
-        }
-      end, { desc = "[c]onfig (lazy)" })
+return {
+  {
+    "ibhagwan/fzf-lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    cmd = "FzfLua",
+    keys = function()
+      local function fzf(fn, opts)
+        return function()
+          local o = opts
+          if type(opts) == "function" then
+            o = opts()
+          end
+          require("fzf-lua")[fn](o)
+        end
+      end
 
-      vim.keymap.set("n", "<leader>fd", function()
-        return builtin.diagnostics { bufnr = 0 }
-      end, { desc = "[d]iagnostic (file)" })
-      vim.keymap.set("n", "<leader>fD", function()
-        return builtin.diagnostics {}
-      end, { desc = "[d]iagnostic (project)" })
+      return {
+        {
+          "<C-p>",
+          fzf "global",
+          desc = "FzfLua: Global (files/bufs/symbols)",
+        },
 
-      -- Git bindings
+        -- Files
+        { "<leader>ff", files_src_first, desc = "FzfLua: Files" },
+        {
+          "<leader>fF",
+          fzf("files", function()
+            return { cwd = vim.fn.expand "%:p:h" }
+          end),
+          desc = "FzfLua: Files (cwd = file dir)",
+        },
+        { "<leader>fr", fzf "oldfiles", desc = "FzfLua: Recent files" },
+        -- config pickers
+        {
+          "<leader>fc",
+          fzf("files", { cwd = vim.fn.stdpath "config" }),
+          desc = "FzfLua: Config files (user)",
+        },
+        {
+          "<leader>fC",
+          fzf("files", { cwd = vim.fs.joinpath(vim.fn.stdpath "data", "lazy") }),
+          desc = "FzfLua: Config files (lazy dir)",
+        },
 
-      vim.keymap.set("n", "<leader>gc", function()
-        return builtin.git_commits()
-      end, { desc = "find [c]ommits" })
+        -- Buffers / lines
+        { "<leader>fb", fzf "buffers", desc = "FzfLua: Buffers" },
+        { "<leader>f/", fzf "blines", desc = "FzfLua: Buffer lines" },
+        { "<leader>f?", fzf "lines", desc = "FzfLua: All open buffer lines" },
 
-      vim.keymap.set("n", "<leader>gC", function()
-        return builtin.git_bcommits()
-      end, { desc = "find [C]ommits (current)" })
+        -- Search
+        {
+          "<leader>fg",
+          fzf "live_grep",
+          desc = "FzfLua: Live grep (project)",
+        },
+        {
+          "<leader>fG",
+          fzf "grep_project",
+          desc = "FzfLua: Grep project (:Rg style)",
+        },
+        {
+          "<leader>fw",
+          fzf "grep_cword",
+          desc = "FzfLua: Grep word under cursor",
+        },
+        {
+          "<leader>fw",
+          fzf "grep_visual",
+          mode = "v",
+          desc = "FzfLua: Grep visual selection",
+        },
 
-      vim.keymap.set("v", "<leader>gc", function()
-        local b, e = require("utils.buffer").get_visual_pos()
-        return builtin.git_bcommits_range {
-          from = b[1],
-          to = e[1],
-        }
-      end, { desc = "find [c]ommits (range)" })
+        -- Help / commands / keymaps
+        { "<leader>fh", fzf "help_tags", desc = "FzfLua: Help tags" },
+        { "<leader>f:", fzf "commands", desc = "FzfLua: Commands" },
+        { "<leader>fk", fzf "keymaps", desc = "FzfLua: Keymaps" },
 
-      vim.keymap.set({ "n", "v" }, "<leader>gb", function()
-        return require("utils.git").branches_for_code()
-      end, { desc = "find code in [b]ranch" })
+        -- Diagnostics (Neovim + LSP)
+        {
+          "<leader>fd",
+          fzf "diagnostics_document",
+          desc = "FzfLua: Diagnostics (buffer)",
+        },
+        {
+          "<leader>fD",
+          fzf "diagnostics_workspace",
+          desc = "FzfLua: Diagnostics (workspace)",
+        },
 
-      -- vim.keymap.set("n", "<leader>gb", function()
-      --   return builtin.git_branches()
-      -- end, { desc = "find [b]ranches" })
+        -- LSP symbols
+        {
+          "<leader>fs",
+          fzf "lsp_document_symbols",
+          desc = "FzfLua: Document symbols",
+        },
+        {
+          "<leader>fS",
+          fzf "lsp_workspace_symbols",
+          desc = "FzfLua: Workspace symbols",
+        },
 
-      vim.keymap.set("n", "<leader>gB", function()
-        return builtin.git_branches {
-          show_remote_tracking_branches = false,
-        }
-      end, { desc = "find [B]ranches (local)" })
+        {
+          "<leader>lh",
+          function()
+            local actions = require "fzf-lua.actions"
+            require("fzf-lua").lsp_definitions {
+              jump1 = true,
+              jump1_action = actions.file_split, -- single result
+              actions = { ["default"] = actions.file_split }, -- multi result (enter)
+            }
+          end,
+          desc = "LSP: Definition (split)",
+        },
+        {
+          "<leader>lv",
+          function()
+            local actions = require "fzf-lua.actions"
+            require("fzf-lua").lsp_definitions {
+              jump1 = true,
+              jump1_action = actions.file_vsplit, -- single result
+              actions = { ["default"] = actions.file_vsplit }, -- multi result (enter)
+            }
+          end,
+          desc = "LSP: Definition (vsplit)",
+        },
+
+        -- Git
+        -- { "<leader>gs", fzf "git_status", desc = "FzfLua: Git status" },
+        -- { "<leader>gb", fzf "git_branches", desc = "FzfLua: Git branches" },
+        {
+          "<leader>gc",
+          fzf "git_commits",
+          desc = "FzfLua: Git commits (repo)",
+        },
+        {
+          "<leader>gC",
+          fzf "git_bcommits",
+          desc = "FzfLua: Git commits (buffer)",
+        },
+        {
+          "<leader>gc",
+          git_bcommits_range,
+          mode = "v",
+          desc = "Git: Buffer commits (selected range)",
+        },
+        {
+          "<leader>gb",
+          branches_for_code,
+          mode = { "n", "v" },
+          desc = "Git: Branches containing code/commit",
+        },
+
+        -- Quality-of-life
+        { "<leader>fR", fzf "resume", desc = "FzfLua: Resume last picker" },
+        { "<leader>fB", fzf "builtin", desc = "FzfLua: Builtins" },
+      }
+    end,
+
+    opts = function()
+      local actions = require "fzf-lua.actions"
+      require("fzf-lua").register_ui_select({
+        winopts = {
+          height = 0.35,
+          width  = 0.55,
+          row    = 0.50,
+          col    = 0.50,
+        },
+      })
+
+      return {
+        winopts = {
+          height = 0.85,
+          width = 0.90,
+          row = 0.35,
+          col = 0.50,
+          preview = {
+            layout = "flex",
+            vertical = "down:50%",
+            horizontal = "right:60%",
+            flip_columns = 140,
+          },
+        },
+
+        keymap = {
+          builtin = {
+            true,
+            -- ["<Esc>"] = "hide", -- make Esc hide (resume-able) instead of hard-abort
+          },
+          fzf = {
+            true,
+          },
+        },
+
+        actions = {
+          files = {
+            true,
+          },
+        },
+
+        grep = {
+          actions = {
+            ["ctrl-g"] = { actions.grep_lgrep },
+            ["ctrl-r"] = { actions.toggle_ignore },
+          },
+        },
+
+        fzf_colors = true,
+      }
     end,
   },
 }

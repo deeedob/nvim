@@ -13,7 +13,7 @@ autocmd("FileType", {
     "query",
     "notify",
     "dap-float",
-    "fugitive"
+    "fugitive",
   },
   command = "nnoremap <silent><nowait><buffer> q <cmd>q!<CR>",
 })

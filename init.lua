@@ -23,10 +23,19 @@ vim.lsp.log.set_level(
   vim.o.verbose > 0 and vim.log.levels.INFO or vim.log.levels.WARN
 )
 
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.foldingRange = {
+  dynamicRegistration = false,
+  lineFoldingOnly = true,
+}
+
 local lsp_configs = {}
 for _, f in pairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
   local server_name = vim.fn.fnamemodify(f, ":t:r")
   table.insert(lsp_configs, server_name)
+  vim.lsp.config(server_name, {
+    capabilities = capabilities,
+  })
 end
 vim.lsp.enable(lsp_configs)
 
