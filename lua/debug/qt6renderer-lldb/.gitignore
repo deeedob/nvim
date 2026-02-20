@@ -1,7 +1,0 @@
-.idea/
-.gradle/
-**/*/__pycache__/
-build/
-Pipfile
-Pipfile.lock
-/python/*/lldb.iml
