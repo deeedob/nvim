@@ -1,10 +1,7 @@
 -- https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/configs/yamlls.lua
 
 return {
-  cmd = {
-    "yaml-language-server",
-    "--stdio",
-  },
+  cmd = { "yaml-language-server", "--stdio" },
   filetypes = {
     "yaml",
     "yaml.docker-compose",
@@ -12,16 +9,17 @@ return {
   },
   root_markers = { ".git" },
   single_file_support = true,
-  -- https://raw.githubusercontent.com/redhat-developer/vscode-yaml/master/package.json
-  settings = {
-    yaml = {
-      schemaStore = {
-        enable = false,
-        url = "",
-      },
-      schemas = require("schemastore").yaml.schemas(),
-    },
-    -- https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting
-    redhat = { telemetry = { enabled = false } },
-  },
+  -- Inject schemastore schemas after the server starts, when plugins are ready.
+  on_new_config = function(config)
+    local ok, schemastore = pcall(require, "schemastore")
+    if ok then
+      config.settings = vim.tbl_deep_extend("force", config.settings or {}, {
+        yaml = {
+          schemaStore = { enable = false, url = "" },
+          schemas = schemastore.yaml.schemas(),
+        },
+        redhat = { telemetry = { enabled = false } },
+      })
+    end
+  end,
 }

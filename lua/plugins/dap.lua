@@ -1,17 +1,31 @@
 local function pick_executable(opts)
   opts = opts or {}
-  local fzf = require "fzf-lua"
+  local fzf = require("fzf-lua")
   local cwd = opts.cwd or vim.fn.getcwd()
 
   return coroutine.create(function(coro)
     -- Use fd if available; otherwise fall back to find.
     local cmd = [[sh -c '
       if command -v fd >/dev/null 2>&1; then
-        fd --hidden --no-ignore --type x --follow --exclude .git .
+        fd --hidden --no-ignore --type x --follow --exclude .git --exclude CMakeFiles .
       else
-        find . -type f -perm -111 -print 2>/dev/null | sed "s#^\./##"
+        find . \
+          -path "./.git" -prune -o \
+          -path "*/CMakeFiles/*" -prune -o \
+          -type f -perm -111 -print 2>/dev/null | sed "s#^\./##"
       fi
     ']]
+
+    if true then
+      local cmake = require("cmake-tools")
+
+      if cmake.is_cmake_project() then
+        local build_dir = cmake.get_build_directory()
+        if build_dir and build_dir ~= "" then
+          cwd = build_dir.filename
+        end
+      end
+    end
 
     fzf.fzf_exec(cmd, {
       cwd = cwd,
@@ -23,9 +37,7 @@ local function pick_executable(opts)
             coroutine.resume(coro, nil)
             return
           end
-          -- Normalize ./path -> /abs/path
-          local abs =
-            vim.fn.fnamemodify(cwd .. "/" .. choice:gsub("^%./", ""), ":p")
+          local abs = vim.fn.fnamemodify(cwd .. "/" .. choice:gsub("^%./", ""), ":p")
           coroutine.resume(coro, abs)
         end,
         ["esc"] = function()
@@ -36,33 +48,179 @@ local function pick_executable(opts)
   end)
 end
 
+local function get_qt6_paths()
+  local config_path = vim.fn.stdpath("config")
+  local base = config_path .. "/lua/debug/qt6renderer"
+  return {
+    gdb_package = base .. "/gdb",
+    gdb_module = base .. "/gdb/qt6renderer",
+    lldb = config_path .. "/lua/debug/qt6renderer/lldb",
+  }
+end
+
+local function get_gdb_init_commands()
+  local paths = get_qt6_paths()
+  local qt6_init = paths.gdb_module .. "/__init__.py"
+  if vim.fn.filereadable(qt6_init) ~= 1 then
+    vim.notify("Qt6Renderer package not found at: " .. paths.gdb_module, vim.log.levels.ERROR)
+    return { "set print pretty on" } -- Fallback to just pretty printing
+  end
+  -- TODO: doesn't work yet
+  return {
+    "python sys.path.append('/home/ddob/.config/nvim/lua/debug/qt6renderer/gdb')",
+    "python import qt6renderer",
+    "python gdb.pretty_printers.append(qt6renderer.qt6_lookup)",
+    "set print pretty on",
+  }
+end
+
+local function get_lldb_init_commands()
+  local paths = get_qt6_paths()
+  local register_script = paths.lldb .. "/register.py"
+
+  -- Direct command script import with absolute path
+  return {
+    ("command script import '%s'"):format(register_script),
+    "script print('Qt6Renderer pretty printers loaded for LLDB')",
+    [[settings set target.process.thread.step-avoid-regexp "std::|__gnu_cxx|QGrpc|QtPrivate"]],
+  }
+end
+
+local function inherit_env()
+  local env = {}
+  for k, v in pairs(vim.fn.environ()) do
+    env[k] = v
+  end
+  return env
+end
+
+local function create_configs(adapter_name, overrides)
+  overrides = overrides or {}
+  local base = {
+    launch = {
+      name = ("%s: Launch"):format(adapter_name),
+      type = adapter_name,
+      request = "launch",
+      cwd = "${workspaceFolder}",
+      program = function()
+        return pick_executable({
+          prompt = ("Path to executable (%s)❯ "):format(adapter_name),
+        })
+      end,
+      args = {},
+      stopOnEntry = false,
+    },
+    attach = {
+      name = ("%s: Attach"):format(adapter_name),
+      type = adapter_name,
+      request = "attach",
+      pid = require("dap.utils").pick_process,
+      cwd = "${workspaceFolder}",
+      args = {},
+      stopOnEntry = true, -- default for cppdbg, others override
+    },
+  }
+
+  for _, mode in ipairs({ "launch", "attach" }) do
+    if overrides[mode] then
+      for k, v in pairs(overrides[mode]) do
+        base[mode][k] = v
+      end
+    end
+  end
+
+  if overrides.common then
+    for _, mode in ipairs({ "launch", "attach" }) do
+      for k, v in pairs(overrides.common) do
+        -- Don't override if already set by mode-specific override
+        if base[mode][k] == nil then
+          base[mode][k] = v
+        end
+      end
+    end
+  end
+
+  return { base.launch, base.attach }
+end
+
+local function setup_cpp_configs()
+  local dap = require("dap")
+  local configs = {}
+
+  -- 1. System lldb-dap (highest priority)
+  local lldb_dap_cmd
+  for _, cmd in ipairs({ "/usr/bin/lldb-dap", "/usr/bin/lldb-vscode" }) do
+    if vim.fn.executable(cmd) == 1 then
+      lldb_dap_cmd = cmd
+      break
+    end
+  end
+
+  if lldb_dap_cmd then
+    dap.adapters.lldb_dap = {
+      type = "executable",
+      command = lldb_dap_cmd,
+      name = "lldb_dap",
+    }
+
+    vim.list_extend(
+      configs,
+      create_configs("lldb_dap", {
+        attach = { stopOnEntry = false },
+        launch = { stopOnEntry = false },
+        common = {
+          initCommands = get_lldb_init_commands(),
+          env = inherit_env,
+          enableAutoVariableSummaries = true,
+          enableSyntheticChildDebugging = true,
+        },
+      })
+    )
+  else
+    vim.notify("lldb-dap/lldb-vscode not found in /usr/bin", vim.log.levels.WARN)
+  end
+
+  if vim.fn.executable("gdb") == 1 then
+    dap.adapters.gdb = {
+      type = "executable",
+      command = "gdb",
+      args = { "--interpreter=dap", "--eval-command", "set print pretty on" },
+    }
+
+    vim.list_extend(
+      configs,
+      create_configs("gdb", {
+        attach = { stopOnEntry = true },
+        common = {
+          setupCommands = get_gdb_init_commands(),
+        },
+      })
+    )
+  end
+
+  return configs
+end
+
 return {
   "mfussenegger/nvim-dap",
   dependencies = {
     {
       "rcarriga/nvim-dap-ui",
-      dependencies = {
-        "nvim-neotest/nvim-nio",
-      },
+      dependencies = { "nvim-neotest/nvim-nio" },
     },
     {
       "jay-babu/mason-nvim-dap.nvim",
       cmd = { "DapInstall", "DapUninstall" },
-      dependencies = {
-        "mason.nvim",
-      },
+      dependencies = { "mason.nvim" },
     },
     "theHamsta/nvim-dap-virtual-text",
-    {
-      "jbyuki/one-small-step-for-vimkind",
-      ft = "lua",
-    },
+    { "jbyuki/one-small-step-for-vimkind", ft = "lua" },
   },
   keys = {
     {
       "<leader>dB",
       function()
-        require("dap").set_breakpoint(vim.fn.input "Breakpoint condition: ")
+        require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
       end,
       desc = "Breakpoint Condition",
     },
@@ -83,9 +241,31 @@ return {
     {
       "<leader>da",
       function()
-        require("dap").continue { before = get_args }
+        -- Prompt the user for program arguments before continuing/launching
+        local dap = require("dap")
+        vim.ui.input({ prompt = "Program arguments: " }, function(input)
+          if input == nil then
+            return
+          end -- user cancelled
+          -- Split the input string into an argv-style table
+          local args = vim.split(input, "%s+", { trimempty = true })
+          -- Store args on the active config so they are re-used by run_last
+          local session = dap.session()
+          if session then
+            session.config.args = args
+            dap.continue()
+          else
+            -- No active session: inject args into the first matching config
+            dap.continue({
+              before = function(config)
+                config.args = args
+                return config
+              end,
+            })
+          end
+        end)
       end,
-      desc = "Run with Args",
+      desc = "Run with args",
     },
     {
       "<leader>dC",
@@ -202,7 +382,7 @@ return {
     {
       "<leader>du",
       function()
-        require("dapui").toggle {}
+        require("dapui").toggle({})
       end,
       desc = "Dap UI",
     },
@@ -216,10 +396,11 @@ return {
     },
   },
   config = function()
-    -- require("dapui").setup {}
-    require("dapui").setup {
+    local dap = require("dap")
+    local dapui = require("dapui")
+
+    dapui.setup({
       layouts = {
-        -- 4 boxes on the left
         {
           position = "left",
           size = 50,
@@ -230,7 +411,6 @@ return {
             { id = "repl", size = 0.25 },
           },
         },
-
         {
           position = "bottom",
           size = 14,
@@ -240,11 +420,8 @@ return {
           },
         },
       },
-    }
-    require("nvim-dap-virtual-text").setup {}
-
-    local dap = require "dap"
-    local dapui = require "dapui"
+    })
+    require("nvim-dap-virtual-text").setup({})
 
     dap.listeners.before.attach.dapui_config = function()
       dapui.open()
@@ -259,60 +436,45 @@ return {
       dapui.close()
     end
 
-    -- Remove all normal keymap 'K' and set it to dap hover.
-    -- Restore it when we're finished.
     local keymap_restore = {}
     dap.listeners.after["event_initialized"]["me"] = function()
-      for _, buf in pairs(vim.api.nvim_list_bufs()) do
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
-        for _, keymap in pairs(keymaps) do
+        for _, keymap in ipairs(keymaps) do
           if keymap.lhs == "K" then
             table.insert(keymap_restore, keymap)
             vim.api.nvim_buf_del_keymap(buf, "n", "K")
           end
         end
       end
-
       vim.keymap.set("n", "K", function()
         require("dap.ui.widgets").hover()
       end, { silent = true })
-
-      -- Auto close dap-hover buffer on BufLeave
       vim.api.nvim_create_autocmd("WinLeave", {
-        group = vim.api.nvim_create_augroup("config", { clear = false }),
+        group = vim.api.nvim_create_augroup("ddob/dap-hover", { clear = true }),
         pattern = "dap-hover*",
         callback = function(event)
-          vim.api.nvim_buf_delete(event.buf, {})
+          pcall(vim.api.nvim_buf_delete, event.buf, {})
         end,
       })
     end
     dap.listeners.after["event_terminated"]["me"] = function()
-      for _, keymap in pairs(keymap_restore) do
-        local rhs = keymap.callback ~= nil and keymap.callback or keymap.rhs
-        vim.keymap.set(
-          keymap.mode,
-          keymap.lhs,
-          rhs,
-          { buffer = keymap.buffer, silent = keymap.silent == 1 }
-        )
+      for _, keymap in ipairs(keymap_restore) do
+        local rhs = keymap.callback or keymap.rhs
+        vim.keymap.set(keymap.mode, keymap.lhs, rhs, {
+          buffer = keymap.buffer,
+          silent = keymap.silent == 1,
+        })
       end
       keymap_restore = {}
     end
 
-    local sc = vim.api.nvim_get_hl(0, { name = "SignColumn", create = false })
-    local ap = vim.api.nvim_get_hl(0, { name = "PreProc", create = false })
-    vim.api.nvim_set_hl(
-      0,
-      "DapStoppedLine",
-      { default = true, link = "Visual" }
-    )
-    vim.api.nvim_set_hl(0, "DapIconGutter", { fg = ap.fg, bg = sc.bg })
     local icons = {
       dap = {
-        Stopped = { "󰁕 ", "DiagnosticWarn", "DapStoppedLine" },
-        Breakpoint = { " " },
-        BreakpointCondition = " ",
+        Stopped = { "󰁕 ", "DiagnosticWarn" },
+        Breakpoint = { " ", "DiagnosticError" },
         BreakpointRejected = { " ", "DiagnosticError" },
+        BreakpointCondition = { " ", "DiagnosticWarn" },
         LogPoint = ".>",
       },
     }
@@ -326,20 +488,25 @@ return {
       })
     end
 
-    require("mason-nvim-dap").setup {
+    local system_cpp_configs = setup_cpp_configs()
+
+    -- Initialize config tables
+    for _, lang in ipairs({ "cpp", "c", "rust" }) do
+      dap.configurations[lang] = dap.configurations[lang] or {}
+      -- Prepend system configs (they take priority)
+      vim.list_extend(dap.configurations[lang], system_cpp_configs)
+    end
+
+    require("mason-nvim-dap").setup({
       automatic_installation = true,
       handlers = {
         function(config)
           require("mason-nvim-dap").default_setup(config)
         end,
+
         cppdbg = function(config)
-          config.configurations = {
-            {
-              name = "gdb: attach",
-              type = "cppdbg",
-              request = "attach",
-              cwd = "${workspaceFolder}",
-              -- processid = require('dap.utils').pick_process,
+          config.configurations = create_configs("cppdbg", {
+            attach = {
               stoponentry = true,
               setupcommands = {
                 {
@@ -349,16 +516,7 @@ return {
                 },
               },
             },
-            {
-              name = "gdb: launch",
-              type = "cppdbg",
-              request = "launch",
-              cwd = "${workspaceFolder}",
-              program = function()
-                return pick_executable {
-                  prompt = "Path to executable (cppdbg)❯ ",
-                }
-              end,
+            launch = {
               setupcommands = {
                 {
                   text = "-enable-pretty-printing",
@@ -367,167 +525,36 @@ return {
                 },
               },
             },
-          }
+          })
           require("mason-nvim-dap").default_setup(config)
         end,
-        -- https://github.com/vadimcn/codelldb/blob/master/MANUAL.md
+
         codelldb = function(config)
-          local initCmd = function()
-            local commands = {}
-
-            local sources =
-              { vim.env.HOME .. "/.lldbinit", vim.fn.getcwd() .. "/.lldbinit" }
-            for _, source in ipairs(sources) do
-              local f = io.open(source, "r")
-              if f then
-                table.insert(commands, "command source " .. source)
-                f:close()
-              end
-            end
-            table.insert(
-              commands,
-              [[settings set frame-format "${frame.index}: ${frame.pc} ${function.name-with-args} @ ${line.file.basename}:${line.number}\n"]]
-            )
-            table.insert(
-              commands,
-              [[settings set target.process.thread.step-avoid-regexp "std::|__gnu_cxx|QGrpc|QtPrivate"]]
-            )
-            return commands
-          end
-          config.configurations = {
-            {
-              name = "LLDB: Attach",
-              type = "codelldb",
-              request = "attach",
-              pid = require("dap.utils").pick_process,
-              args = {},
-              stopOnEntry = false,
-              initCommands = initCmd,
-              env = function()
-                local variables = {}
-                for k, v in pairs(vim.fn.environ()) do
-                  table.insert(variables, string.format("%s=%s", k, v))
-                end
-                return variables
-              end,
+          config.configurations = create_configs("codelldb", {
+            attach = { stopOnEntry = false },
+            launch = { stopOnEntry = false },
+            common = {
+              initCommands = get_lldb_init_commands(),
+              env = inherit_env,
             },
-            {
-              name = "LLDB: Launch",
-              type = "codelldb",
-              request = "launch",
-              cwd = "${workspaceFolder}",
-              initCommands = initCmd,
-
-              program = function()
-                return pick_executable {
-                  prompt = "Path to executable (codelldb)❯ ",
-                }
-              end,
-            },
-          }
+          })
           require("mason-nvim-dap").default_setup(config)
         end,
-        -- TODO: Doesn't work?
-        -- lua = function(config)
-        --   config.configurations = {
-        --     {
-        --       name = "Attach to running Neovim instance",
-        --       type = "nlua",
-        --       request = "attach",
-        --     },
-        --   }
-        --   config.adapters = {
-        --     type = "server",
-        --     host = config.host or "127.0.0.1",
-        --     port = config.port or 8086,
-        --   }
-        --   require("mason-nvim-dap").default_setup(config)
-        -- end,
       },
       ensure_installed = {
         "codelldb",
         "cppdbg",
         "bash-debug-adapter",
       },
-    }
+    })
 
-    local lldb_dap_cmd = "/usr/bin/lldb-dap"
-    if vim.fn.executable(lldb_dap_cmd) ~= 1 then
-      lldb_dap_cmd = "/usr/bin/lldb-vscode"
-      -- TODO: DON"T add then!
+    dap.adapters.nlua = function(callback, config)
+      callback({
+        type = "server",
+        host = config.host or "127.0.0.1",
+        port = config.port or 8086,
+      })
     end
-
-    dap.adapters.lldb_dap = {
-      type = "executable",
-      command = lldb_dap_cmd,
-      name = "lldb_dap",
-    }
-
-    local lldb_dap_init_cmd = function()
-      local commands = {}
-
-      local sources =
-        { vim.env.HOME .. "/.lldbinit", vim.fn.getcwd() .. "/.lldbinit" }
-      for _, source in ipairs(sources) do
-        local f = io.open(source, "r")
-        if f then
-          table.insert(commands, "command source " .. source)
-          f:close()
-        end
-      end
-      table.insert(
-        commands,
-        [[settings set frame-format "${frame.index}: ${frame.pc} ${function.name-with-args} @ ${line.file.basename}:${line.number}\n"]]
-      )
-      table.insert(
-        commands,
-        [[settings set target.process.thread.step-avoid-regexp "std::|__gnu_cxx|QGrpc|QtPrivate"]]
-      )
-    end
-
-    local inherit_env = function()
-      local variables = {}
-      for k, v in pairs(vim.fn.environ()) do
-        table.insert(variables, string.format("%s=%s", k, v))
-      end
-      return variables
-    end
-
-    local lldb_dap_configs = {
-      {
-        name = "LLDB-DAP: Launch",
-        type = "lldb_dap",
-        request = "launch",
-        cwd = "${workspaceFolder}",
-        program = function()
-          return pick_executable { prompt = "Path to executable (lldb-dap)❯ " }
-        end,
-        args = {},
-        stopOnEntry = false,
-
-        initCommands = lldb_dap_init_cmd,
-        env = inherit_env,
-
-        enableAutoVariableSummaries = true,
-        enableSyntheticChildDebugging = true,
-      },
-      {
-        name = "LLDB-DAP: Attach",
-        type = "lldb_dap",
-        request = "attach",
-        pid = require("dap.utils").pick_process,
-        cwd = "${workspaceFolder}",
-        args = {},
-        stopOnEntry = false,
-
-        initCommands = lldb_dap_init_cmd,
-        env = inherit_env,
-
-        enableAutoVariableSummaries = true,
-        enableSyntheticChildDebugging = true,
-      },
-    }
-
     dap.configurations.lua = {
       {
         type = "nlua",
@@ -536,20 +563,5 @@ return {
         port = 8086,
       },
     }
-
-    dap.adapters.nlua = function(callback, config)
-      callback {
-        type = "server",
-        host = config.host or "127.0.0.1",
-        port = config.port or 8086,
-      }
-    end
-    dap.configurations.cpp = dap.configurations.cpp or {}
-    dap.configurations.c = dap.configurations.c or {}
-    dap.configurations.rust = dap.configurations.rust or {}
-
-    vim.list_extend(dap.configurations.cpp, lldb_dap_configs)
-    vim.list_extend(dap.configurations.c, lldb_dap_configs)
-    vim.list_extend(dap.configurations.rust, lldb_dap_configs)
   end,
 }

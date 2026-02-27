@@ -6,8 +6,7 @@ return {
 
   {
     "folke/lazydev.nvim",
-    -- ft = "lua",
-    lazy = false,
+    ft = "lua",
     opts = {
       -- lua_root = false,
       library = {
@@ -24,6 +23,6 @@ return {
 
   {
     "HiPhish/jinja.vim",
-    lazy = false,
+    ft = "jinja",
   },
 }

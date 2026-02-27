@@ -16,7 +16,7 @@ return {
 
     local conditions = {
       buffer_not_empty = function()
-        return vim.fn.empty(vim.fn.expand "%:t") ~= 1
+        return vim.fn.empty(vim.fn.expand("%:t")) ~= 1
       end,
       min_window_width = function(width)
         return vim.fn.winwidth(0) > width
@@ -27,7 +27,7 @@ return {
     local cmake = nil
     local function check_cmake()
       if package.loaded["cmake-tools"] then
-        cmake = require "cmake-tools"
+        cmake = require("cmake-tools")
       end
     end
 
@@ -45,15 +45,14 @@ return {
             check_cmake()
             return false
           end
-          return conditions.min_window_width(hide_cmake)
-            and cmake.is_cmake_project()
+          return conditions.min_window_width(hide_cmake) and cmake.is_cmake_project()
         end,
         icon = icons.cmake.Gear,
         color = { fg = col },
         on_click = function(n, mouse)
           if n == 1 then
             if mouse == "l" then
-              vim.cmd "CMakeSelectBuildTarget"
+              vim.cmd("CMakeSelectBuildTarget")
             end
           end
         end,
@@ -71,14 +70,13 @@ return {
           if not cmake then
             return false
           end
-          return conditions.min_window_width(hide_cmake)
-            and cmake.is_cmake_project()
+          return conditions.min_window_width(hide_cmake) and cmake.is_cmake_project()
         end,
         color = { fg = col },
         on_click = function(n, mouse)
           if n == 1 then
             if mouse == "l" then
-              vim.cmd "CMakeSelectLaunchTarget"
+              vim.cmd("CMakeSelectLaunchTarget")
             end
           end
         end,
@@ -104,7 +102,7 @@ return {
         on_click = function(n, mouse)
           if n == 1 then
             if mouse == "l" then
-              vim.cmd "CMakeSelectKit"
+              vim.cmd("CMakeSelectKit")
             end
           end
         end,
@@ -130,7 +128,7 @@ return {
         on_click = function(n, mouse)
           if n == 1 then
             if mouse == "l" then
-              vim.cmd "CMakeSelectConfigurePreset"
+              vim.cmd("CMakeSelectConfigurePreset")
             end
           end
         end,
@@ -156,7 +154,7 @@ return {
         on_click = function(n, mouse)
           if n == 1 then
             if mouse == "l" then
-              vim.cmd "CMakeSelectBuildType"
+              vim.cmd("CMakeSelectBuildType")
             end
           end
         end,
@@ -182,14 +180,14 @@ return {
         on_click = function(n, mouse)
           if n == 1 then
             if mouse == "l" then
-              vim.cmd "CMakeSelectBuildPreset"
+              vim.cmd("CMakeSelectBuildPreset")
             end
           end
         end,
       },
     }
 
-    require("lualine").setup {
+    require("lualine").setup({
       options = {
         theme = "auto",
         globalstatus = true,
@@ -255,7 +253,7 @@ return {
           -- { "progress" },
         },
       },
-    }
+    })
   end,
   dependencies = {
     "nvim-tree/nvim-web-devicons",

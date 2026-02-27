@@ -2,10 +2,7 @@ local check_version = function()
   local verstr = tostring(vim.version())
   if not vim.version.ge then
     vim.health.error(
-      string.format(
-        "Neovim out of date: '%s'. Upgrade to latest stable or nightly",
-        verstr
-      )
+      string.format("Neovim out of date: '%s'. Upgrade to latest stable or nightly", verstr)
     )
     return
   end
@@ -14,16 +11,13 @@ local check_version = function()
     vim.health.ok(string.format("Neovim version is: '%s'", verstr))
   else
     vim.health.error(
-      string.format(
-        "Neovim out of date: '%s'. Upgrade to latest stable or nightly",
-        verstr
-      )
+      string.format("Neovim out of date: '%s'. Upgrade to latest stable or nightly", verstr)
     )
   end
 end
 
 local check_external_reqs = function()
-  for _, exe in ipairs {
+  for _, exe in ipairs({
     "git",
     "make",
     "unzip",
@@ -35,8 +29,8 @@ local check_external_reqs = function()
     "cmake",
     "nvr",
     "typos",
-    "fzf"
-  } do
+    "fzf",
+  }) do
     local is_executable = vim.fn.executable(exe) == 1
     if is_executable then
       vim.health.ok(string.format("Found executable: '%s'", exe))
@@ -50,7 +44,7 @@ end
 
 return {
   check = function()
-    vim.health.start "ddob.nvim"
+    vim.health.start("ddob.nvim")
     local uv = vim.uv or vim.loop
     vim.health.info("System Information: " .. vim.inspect(uv.os_uname()))
 

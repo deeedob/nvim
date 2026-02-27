@@ -54,33 +54,28 @@ return {
         print(cmd)
         vim.fn.system(cmd)
       end
-      vim.cmd [[CMakeGenerate]]
+      vim.cmd([[CMakeGenerate]])
     end, { desc = "Wipe build dir and start fresh" })
 
-    vim.keymap.set(
-      "n",
-      "<leader>cw",
-      ":CMakeWipe<cr>",
-      { desc = "[w]ipe Build Dir", remap = true }
-    )
+    vim.keymap.set("n", "<leader>cw", ":CMakeWipe<cr>", { desc = "[w]ipe Build Dir", remap = true })
 
-    local nproc = tonumber(os.getenv "COMPILE_CORES")
+    local nproc = tonumber(os.getenv("COMPILE_CORES"))
 
-    require("cmake-tools").setup {
+    require("cmake-tools").setup({
       cmake_command = "cmake",
       ctest_command = "ctest",
       cmake_use_preset = true,
       cmake_regenerate_on_save = false,
       cmake_generate_options = {
-        "-DCMAKE_EXPORT_COMPILE_COMMANDS=1"
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
       },
       cmake_build_options = { "-j " .. tostring(nproc) },
       cmake_build_directory = "cmake-build/${variant:buildType}",
       cmake_compile_commands_options = {
         action = "lsp", -- available options: soft_link, copy, lsp, none
-                          -- lsp:       this will automatically set compile commands file location using lsp
+        -- lsp:       this will automatically set compile commands file location using lsp
       },
-      cmake_kits_path = vim.fn.stdpath "config" .. "/res/cmake-kits.json",
+      cmake_kits_path = vim.fn.stdpath("config") .. "/res/cmake-kits.json",
       cmake_dap_configuration = {
         name = "cpp",
         type = "codelldb",
@@ -119,6 +114,6 @@ return {
       },
       cmake_virtual_text_support = false,
       cmake_use_scratch_buffer = false,
-    }
+    })
   end,
 }

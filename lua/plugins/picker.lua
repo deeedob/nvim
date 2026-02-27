@@ -59,7 +59,7 @@ local function branches_for_code()
       return
     end
   else
-    local filepath = vim.fn.expand "%:p"
+    local filepath = vim.fn.expand("%:p")
     if filepath == "" then
       vim.notify("No file found!", vim.log.levels.WARN)
       return
@@ -76,7 +76,7 @@ local function branches_for_code()
       vim.notify("Could not retrieve blame info", vim.log.levels.WARN)
       return
     end
-    commit = (blame_output[1] or ""):match "^(%w+)"
+    commit = (blame_output[1] or ""):match("^(%w+)")
     if not commit then
       vim.notify("Could not parse commit hash", vim.log.levels.WARN)
       return
@@ -94,8 +94,8 @@ local function branches_for_code()
     branches[i] = br
   end
 
-  local fzf_lua = require "fzf-lua"
-  local actions = require "fzf-lua.actions"
+  local fzf_lua = require("fzf-lua")
+  local actions = require("fzf-lua.actions")
 
   -- show branches in fzf; default action copies branch name + notifies
   fzf_lua.fzf_exec(branches, {
@@ -118,33 +118,30 @@ local function branches_for_code()
         if not br or br == "" then
           return
         end
-        fzf_lua.fzf_exec(
-          "git log --oneline --decorate " .. vim.fn.shellescape(br),
-          {
-            prompt = "Commits " .. br .. "> ",
-            preview = "git show --color=always {1} | sed -n '1,200p'",
-            actions = {
-              ["default"] = function(sel)
-                local hash = (sel[1] or ""):match "^(%w+)"
-                if hash then
-                  pcall(vim.fn.setreg, "+", hash)
-                  vim.notify("Copied commit: " .. hash)
-                end
-              end,
-              ["ctrl-y"] = actions.copy_to_clipboard,
-            },
-          }
-        )
+        fzf_lua.fzf_exec("git log --oneline --decorate " .. vim.fn.shellescape(br), {
+          prompt = "Commits " .. br .. "> ",
+          preview = "git show --color=always {1} | sed -n '1,200p'",
+          actions = {
+            ["default"] = function(sel)
+              local hash = (sel[1] or ""):match("^(%w+)")
+              if hash then
+                pcall(vim.fn.setreg, "+", hash)
+                vim.notify("Copied commit: " .. hash)
+              end
+            end,
+            ["ctrl-y"] = actions.copy_to_clipboard,
+          },
+        })
       end,
     },
   })
 end
 
 local function git_bcommits_range()
-  local fzf = require "fzf-lua"
-  local actions = require "fzf-lua.actions"
+  local fzf = require("fzf-lua")
+  local actions = require("fzf-lua.actions")
 
-  local abs = vim.fn.expand "%:p"
+  local abs = vim.fn.expand("%:p")
   if abs == "" then
     vim.notify("No file found!", vim.log.levels.WARN)
     return
@@ -175,8 +172,7 @@ local function git_bcommits_range()
     )[1]
   end
 
-  local pretty =
-    [[%C(yellow)%h%Creset %Cgreen(%><(12)%cr%><|(12))%Creset %s %C(blue)<%an>%Creset]]
+  local pretty = [[%C(yellow)%h%Creset %Cgreen(%><(12)%cr%><|(12))%Creset %s %C(blue)<%an>%Creset]]
 
   local cmd = [[git log --no-patch --color --pretty=format:"]]
     .. pretty
@@ -207,32 +203,6 @@ local function git_bcommits_range()
   })
 end
 
-local function files_src_first()
-  -- Keep fzf-lua's `files` provider UI, but supply a custom command.
-  -- `--no-sort` is the key for "src has more weight": it keeps input order.
-  require("fzf-lua").files({
-    prompt = "Files❯ ",
-    cmd = [[sh -c '
-      norm() { sed "s#^\./##"; }
-
-      if command -v fd >/dev/null 2>&1; then
-        fd --color=never --hidden --type f --type l --exclude .git . src 2>/dev/null | norm
-        fd --color=never --hidden --type f --type l --exclude .git . .  2>/dev/null | norm \
-          | grep -v -E "^(src|include)/"
-      else
-        find src -type f -print 2>/dev/null | norm
-        find . -type f -print 2>/dev/null | norm \
-          | grep -v -E "^(src|include)/"
-      fi
-    ']],
-    -- important: keep provider formatting/icons; just adjust fzf behavior
-    fzf_opts = {
-      ["--no-sort"] = "",         -- <<< makes "src first" win over scoring
-      ["--tiebreak"] = "index",   -- harmless, keeps stable ordering
-    },
-  })
-end
-
 return {
   {
     "ibhagwan/fzf-lua",
@@ -250,112 +220,125 @@ return {
       end
 
       return {
-        {
-          "<C-p>",
-          fzf "global",
-          desc = "FzfLua: Global (files/bufs/symbols)",
-        },
-
         -- Files
-        { "<leader>ff", files_src_first, desc = "FzfLua: Files" },
+        {
+          "<leader>ff",
+          function()
+            require("fzf-lua").files({
+              prompt = "Files❯ ",
+              fzf_opts = {
+                ["--scheme"] = "path",
+                ["--tiebreak"] = "chunk,length,index",
+              },
+            })
+          end,
+          desc = "FzfLua: Files",
+        },
         {
           "<leader>fF",
           fzf("files", function()
-            return { cwd = vim.fn.expand "%:p:h" }
+            return { cwd = vim.fn.expand("%:p:h") }
           end),
           desc = "FzfLua: Files (cwd = file dir)",
         },
-        { "<leader>fr", fzf "oldfiles", desc = "FzfLua: Recent files" },
         -- config pickers
         {
           "<leader>fc",
-          fzf("files", { cwd = vim.fn.stdpath "config" }),
+          fzf("files", { cwd = vim.fn.stdpath("config") }),
           desc = "FzfLua: Config files (user)",
         },
         {
           "<leader>fC",
-          fzf("files", { cwd = vim.fs.joinpath(vim.fn.stdpath "data", "lazy") }),
+          fzf("files", { cwd = vim.fs.joinpath(vim.fn.stdpath("data"), "lazy") }),
           desc = "FzfLua: Config files (lazy dir)",
         },
 
         -- Buffers / lines
-        { "<leader>fb", fzf "buffers", desc = "FzfLua: Buffers" },
-        { "<leader>f/", fzf "blines", desc = "FzfLua: Buffer lines" },
-        { "<leader>f?", fzf "lines", desc = "FzfLua: All open buffer lines" },
+        { "<leader>fb", fzf("buffers"), desc = "FzfLua: Buffers" },
+        { "<leader>f/", fzf("blines"), desc = "FzfLua: Buffer lines" },
+        { "<leader>f?", fzf("lines"), desc = "FzfLua: All open buffer lines" },
 
         -- Search
         {
           "<leader>fg",
-          fzf "live_grep",
+          fzf("live_grep"),
           desc = "FzfLua: Live grep (project)",
         },
         {
           "<leader>fG",
-          fzf "grep_project",
-          desc = "FzfLua: Grep project (:Rg style)",
+          fzf("live_grep", function()
+            return { cwd = vim.fn.expand("%:p:h") }
+          end),
+          desc = "FzfLua: Live grep (file dir)",
         },
         {
           "<leader>fw",
-          fzf "grep_cword",
+          fzf("grep_cword"),
           desc = "FzfLua: Grep word under cursor",
         },
         {
           "<leader>fw",
-          fzf "grep_visual",
+          fzf("grep_visual"),
           mode = "v",
           desc = "FzfLua: Grep visual selection",
         },
 
         -- Help / commands / keymaps
-        { "<leader>fh", fzf "help_tags", desc = "FzfLua: Help tags" },
-        { "<leader>f:", fzf "commands", desc = "FzfLua: Commands" },
-        { "<leader>fk", fzf "keymaps", desc = "FzfLua: Keymaps" },
+        { "<leader>fh", fzf("help_tags"), desc = "FzfLua: Help tags" },
+        { "<leader>f:", fzf("commands"), desc = "FzfLua: Commands" },
+        { "<leader>fk", fzf("keymaps"), desc = "FzfLua: Keymaps" },
 
         -- Diagnostics (Neovim + LSP)
         {
           "<leader>fd",
-          fzf "diagnostics_document",
+          fzf("diagnostics_document"),
           desc = "FzfLua: Diagnostics (buffer)",
         },
         {
           "<leader>fD",
-          fzf "diagnostics_workspace",
+          fzf("diagnostics_workspace"),
           desc = "FzfLua: Diagnostics (workspace)",
         },
 
         -- LSP symbols
         {
           "<leader>fs",
-          fzf "lsp_document_symbols",
+          fzf("lsp_document_symbols"),
           desc = "FzfLua: Document symbols",
         },
         {
           "<leader>fS",
-          fzf "lsp_workspace_symbols",
+          fzf("lsp_workspace_symbols"),
           desc = "FzfLua: Workspace symbols",
+        },
+
+        {
+          "<leader>fz",
+          fzf("zoxide"),
+          desc = "Zoxide: cd + files",
         },
 
         {
           "<leader>lh",
           function()
-            local actions = require "fzf-lua.actions"
-            require("fzf-lua").lsp_definitions {
+            local actions = require("fzf-lua.actions")
+            require("fzf-lua").lsp_definitions({
               jump1 = true,
               jump1_action = actions.file_split, -- single result
               actions = { ["default"] = actions.file_split }, -- multi result (enter)
-            }
+            })
           end,
           desc = "LSP: Definition (split)",
         },
         {
           "<leader>lv",
           function()
-            local actions = require "fzf-lua.actions"
-            require("fzf-lua").lsp_definitions {
+            local actions = require("fzf-lua.actions")
+            require("fzf-lua").lsp_definitions({
               jump1 = true,
               jump1_action = actions.file_vsplit, -- single result
               actions = { ["default"] = actions.file_vsplit }, -- multi result (enter)
-            }
+            })
           end,
           desc = "LSP: Definition (vsplit)",
         },
@@ -365,12 +348,12 @@ return {
         -- { "<leader>gb", fzf "git_branches", desc = "FzfLua: Git branches" },
         {
           "<leader>gc",
-          fzf "git_commits",
+          fzf("git_commits"),
           desc = "FzfLua: Git commits (repo)",
         },
         {
           "<leader>gC",
-          fzf "git_bcommits",
+          fzf("git_bcommits"),
           desc = "FzfLua: Git commits (buffer)",
         },
         {
@@ -387,19 +370,20 @@ return {
         },
 
         -- Quality-of-life
-        { "<leader>fR", fzf "resume", desc = "FzfLua: Resume last picker" },
-        { "<leader>fB", fzf "builtin", desc = "FzfLua: Builtins" },
+        { "<leader>fr", fzf("resume"), desc = "FzfLua: Resume last picker" },
+        { "<leader>fR", fzf("oldfiles"), desc = "FzfLua: Recent files" },
+        { "<leader>fB", fzf("builtin"), desc = "FzfLua: Builtins" },
       }
     end,
 
     opts = function()
-      local actions = require "fzf-lua.actions"
+      local actions = require("fzf-lua.actions")
       require("fzf-lua").register_ui_select({
         winopts = {
           height = 0.35,
-          width  = 0.55,
-          row    = 0.50,
-          col    = 0.50,
+          width = 0.55,
+          row = 0.50,
+          col = 0.50,
         },
       })
 
@@ -433,7 +417,12 @@ return {
           },
         },
 
+        files = {
+          hidden = true,
+        },
+
         grep = {
+          hidden = true,
           actions = {
             ["ctrl-g"] = { actions.grep_lgrep },
             ["ctrl-r"] = { actions.toggle_ignore },

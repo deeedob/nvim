@@ -90,9 +90,9 @@ return {
     {
       "zU",
       function()
-        local ufo = require "ufo"
+        local ufo = require("ufo")
         ufo.closeAllFolds()
-        vim.cmd "normal! zO"
+        vim.cmd("normal! zO")
       end,
       desc = "Close all folds except current (focus fold)",
     },

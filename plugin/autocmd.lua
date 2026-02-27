@@ -1,7 +1,8 @@
 local autocmd = vim.api.nvim_create_autocmd
-local augroup = vim.api.nvim_create_augroup("config", { clear = false })
+local augroup = vim.api.nvim_create_augroup("config", { clear = true })
 
--- Quick close
+-- ── Quick close with q ────────────────────────────────────────────────────────
+-- A buffer-local `q` mapping that closes the window without writing changes.
 autocmd("FileType", {
   group = augroup,
   pattern = {
@@ -15,49 +16,76 @@ autocmd("FileType", {
     "dap-float",
     "fugitive",
   },
-  command = "nnoremap <silent><nowait><buffer> q <cmd>q!<CR>",
+  callback = function(args)
+    vim.keymap.set("n", "q", "<cmd>q!<cr>", {
+      silent = true,
+      nowait = true,
+      buffer = args.buf,
+      desc = "Close window",
+    })
+  end,
 })
 
--- Remove trailing whitespaces
-autocmd("BufWritePre", { group = augroup, command = "%s/\\s\\+$//e" })
+-- ── Fugitive buffers should not appear in the buffer list ─────────────────────
+autocmd("FileType", {
+  group = augroup,
+  pattern = { "fugitive", "fugitiveblame" },
+  callback = function(args)
+    vim.bo[args.buf].buflisted = false
+  end,
+})
 
+-- ── Strip trailing whitespace before saving ───────────────────────────────────
+autocmd("BufWritePre", {
+  group = augroup,
+  callback = function()
+    -- Preserve cursor position across the substitution
+    local pos = vim.api.nvim_win_get_cursor(0)
+    vim.cmd([[silent! %s/\s\+$//e]])
+    pcall(vim.api.nvim_win_set_cursor, 0, pos)
+  end,
+})
+
+-- ── Prevent 'o' from continuing comments on new lines ────────────────────────
+-- formatoptions is reset by many ftplugins; enforce our preference everywhere.
 autocmd("BufWinEnter", {
   group = augroup,
-  command = "setlocal formatoptions-=o",
+  callback = function()
+    vim.opt_local.formatoptions:remove("o")
+  end,
 })
 
+-- ── Equalise splits on terminal resize ───────────────────────────────────────
 autocmd("VimResized", {
   group = augroup,
   callback = function()
-    vim.cmd "wincmd ="
+    vim.cmd("wincmd =")
   end,
 })
 
--- Check if buffers changes upon regaining focus
-autocmd(
-  { "FocusGained", "VimResume" },
-  { command = "checktime", group = augroup }
-)
+-- ── Re-read files that may have changed when Neovim regains focus ─────────────
+autocmd({ "FocusGained", "VimResume" }, {
+  group = augroup,
+  callback = function()
+    vim.cmd("checktime")
+  end,
+})
 
--- Fancy yank
+-- ── Briefly highlight yanked text ────────────────────────────────────────────
 autocmd("TextYankPost", {
   group = augroup,
   callback = function()
-    vim.highlight.on_yank {
-      timeout = 175,
-    }
+    vim.highlight.on_yank({ timeout = 175 })
   end,
 })
 
--- Go to the last loc when opening a buffer
+-- ── Restore last cursor position when opening a buffer ───────────────────────
 autocmd("BufReadPost", {
   group = augroup,
   callback = function(event)
-    local exclude = { "gitcommit", "NeogitCommitMessage" }
+    local excluded = { "gitcommit", "NeogitCommitMessage" }
     local buf = event.buf
-    if
-      vim.tbl_contains(exclude, vim.bo[buf].filetype) or vim.b[buf].last_loc
-    then
+    if vim.tbl_contains(excluded, vim.bo[buf].filetype) or vim.b[buf].last_loc then
       return
     end
     vim.b[buf].last_loc = true
@@ -69,32 +97,17 @@ autocmd("BufReadPost", {
   end,
 })
 
--- Sync syntax when not editing text
--- autocmd("CursorHold", {
---   callback = function(event)
---     if vim.api.nvim_get_option_value("syntax", { buf = event.buf }) ~= "" then
---       vim.api.nvim_command "syntax sync fromstart"
---     end
---
---     if vim.lsp.semantic_tokens then
---       vim.lsp.semantic_tokens.force_refresh(event.buf)
---     end
---   end,
---   group = augroup,
--- })
-
+-- ── Notify when a macro recording starts / finishes ──────────────────────────
 autocmd("RecordingEnter", {
   group = augroup,
-  callback = function(event)
-    local msg = "Recording macro at reg[" .. vim.fn.reg_recording() .. "]"
-    vim.notify(msg)
+  callback = function()
+    vim.notify("Recording macro @ [" .. vim.fn.reg_recording() .. "]")
   end,
 })
 
 autocmd("RecordingLeave", {
   group = augroup,
-  callback = function(event)
-    local msg = "Finished recording at reg[" .. vim.fn.reg_recording() .. "]"
-    vim.notify(msg)
+  callback = function()
+    vim.notify("Finished macro @ [" .. vim.fn.reg_recording() .. "]")
   end,
 })

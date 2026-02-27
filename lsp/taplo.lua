@@ -3,6 +3,6 @@
 return {
   cmd = { "taplo", "lsp", "stdio" },
   filetypes = { "toml" },
-  root_markers = { ".marksman.toml", ".git" },
+  root_markers = { "*.toml", ".git" },
   single_file_support = true,
 }

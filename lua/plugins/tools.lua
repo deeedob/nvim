@@ -5,17 +5,17 @@ return {
     opts = {
       spec = {
         { "<leader>f", group = "[F]ind" },
-        { "<leader>l", group = "[L]sp" },
+        { "<leader>l", group = "[L]SP" },
         { "<leader>g", group = "[G]it" },
-        { "<leader>u", group = "[U]ser Interface" },
-        { "<leader>ug", group = "[G]it" },
-        { "<leader>e", group = "[E]xplorer" },
+        { "<leader>u", group = "[U]I" },
+        { "<leader>ug", group = "[G]it signs" },
         { "<leader>t", group = "[T]erminal" },
-        { "<leader>d", group = "[D]debug" },
-        { "<leader>b", group = "[B]buffer" },
-
-        { "<leader>c", name = "[C]ode" },
-        { "<leader>cD", name = "[D]ocs" },
+        { "<leader>d", group = "[D]ebug" },
+        { "<leader>b", group = "[B]uffer" },
+        { "<leader>bt", group = "[T]abs" },
+        { "<leader>c", group = "[C]ode" },
+        { "<leader>cD", group = "[D]ocs" },
+        { "<leader>cs", group = "[S]elect" },
       },
     },
   },
@@ -24,7 +24,7 @@ return {
     "kylechui/nvim-surround",
     event = "VeryLazy",
     config = function()
-      require("nvim-surround").setup {}
+      require("nvim-surround").setup({})
     end,
   },
 
@@ -80,7 +80,7 @@ return {
         function()
           require("arrow.ui").openMenu()
         end,
-        desc = "Flash",
+        desc = "Arrow menu",
       },
     },
     opts = {
@@ -92,20 +92,42 @@ return {
 
   {
     "NvChad/nvim-colorizer.lua",
+    lazy = false,
     config = function()
-      require("colorizer").setup {
+      require("colorizer").setup({
         user_default_options = {
           names = false,
         },
-      }
+      })
     end,
   },
 
-  {
-    "folke/todo-comments.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    opts = {},
-  },
+  -- {
+  --   "folke/todo-comments.nvim",
+  --   dependencies = { "nvim-lua/plenary.nvim" },
+  --   opts = {
+  --     signs = true,
+  --     keywords = {
+  --       FIX = {
+  --         icon = " ", -- icon used for the sign, and in search results
+  --         color = "error", -- can be a hex color, or a named color (see below)
+  --         alt = { "FIXME", "BUG", "FIXIT", "ISSUE" }, -- a set of other keywords that all map to this FIX keywords
+  --         -- signs = false, -- configure signs for some keywords individually
+  --       },
+  --       TODO = { icon = " ", color = "info" },
+  --       HACK = { icon = " ", color = "warning" },
+  --       WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
+  --       PERF = { icon = " ", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
+  --       NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
+  --       TEST = {
+  --         icon = "⏲ ",
+  --         color = "test",
+  --         alt = { "TESTING", "PASSED", "FAILED" },
+  --       },
+  --       Qt7 = { icon = "Q", color = "info", alt = { "### Qt7", "QTBUG-" }}
+  --     },
+  --   },
+  -- },
 
   {
     "gbprod/yanky.nvim",
@@ -165,11 +187,11 @@ return {
     "shellRaining/hlchunk.nvim",
     event = { "BufReadPre", "BufNewFile" },
     config = function()
-      require("hlchunk").setup {
+      require("hlchunk").setup({
         chunk = {
           enable = true,
         },
-      }
+      })
     end,
   },
 
@@ -181,17 +203,18 @@ return {
     "b0o/incline.nvim",
     event = "VeryLazy",
     config = function()
-      require("incline").setup {
+      require("incline").setup({
         window = {
           padding = 0,
           margin = { horizontal = 0, vertical = 0 },
         },
-      }
+      })
     end,
   },
   -- Highlight other
   {
     "RRethy/vim-illuminate",
+    lazy = false,
     opts = {
       delay = 750,
       large_filie_cutoff = 2000,
@@ -227,28 +250,28 @@ return {
       {
         "<leader>bh",
         function()
-          require("swap-buffers").swap_buffers "h"
+          require("swap-buffers").swap_buffers("h")
         end,
         desc = "Buffer Swap Left",
       },
       {
         "<leader>bj",
         function()
-          require("swap-buffers").swap_buffers "j"
+          require("swap-buffers").swap_buffers("j")
         end,
         desc = "Buffer Swap Down",
       },
       {
         "<leader>bk",
         function()
-          require("swap-buffers").swap_buffers "k"
+          require("swap-buffers").swap_buffers("k")
         end,
         desc = "Buffer Swap Top",
       },
       {
         "<leader>bl",
         function()
-          require("swap-buffers").swap_buffers "l"
+          require("swap-buffers").swap_buffers("l")
         end,
         desc = "Buffer Swap Right",
       },
@@ -262,7 +285,7 @@ return {
     "echasnovski/mini.nvim",
     config = function()
       require("mini.ai").setup()
-      require("mini.pairs").setup {
+      require("mini.pairs").setup({
         mappings = {
           ["`"] = {
             action = "closeopen",
@@ -271,7 +294,7 @@ return {
             register = { cr = false },
           },
         },
-      }
+      })
     end,
   },
 }

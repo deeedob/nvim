@@ -1,205 +1,170 @@
 local map = vim.keymap.set
+local buf = require("utils.buffer")
 
--- normal mode
-map("t", "<Esc><Esc>", "<c-\\><c-n>", { desc = "Enter normal mode" })
-map("i", "jk", "<ESC>", { desc = "Enter normal mode" })
+-- ── Mode escape ───────────────────────────────────────────────────────────────
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Enter normal mode" })
+map("i", "jk", "<Esc>", { desc = "Enter normal mode" })
 
--- window navigation
+-- ── Window navigation ─────────────────────────────────────────────────────────
 map("n", "<C-h>", "<C-w>h", { desc = "Focus left window", remap = true, silent = true })
 map("n", "<C-j>", "<C-w>j", { desc = "Focus lower window", remap = true, silent = true })
 map("n", "<C-k>", "<C-w>k", { desc = "Focus upper window", remap = true, silent = true })
 map("n", "<C-l>", "<C-w>l", { desc = "Focus right window", remap = true, silent = true })
 
--- terminal navigation
 map("t", "<C-h>", "<cmd>wincmd h<cr>", { desc = "Focus left window", silent = true })
 map("t", "<C-j>", "<cmd>wincmd j<cr>", { desc = "Focus lower window", silent = true })
 map("t", "<C-k>", "<cmd>wincmd k<cr>", { desc = "Focus upper window", silent = true })
 map("t", "<C-l>", "<cmd>wincmd l<cr>", { desc = "Focus right window", silent = true })
 
-map("n", "gf", function ()
-  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-  col = col + 1 -- nvim_win_get_cursor is 0-indexed for columns
-  -- Get current line and next line (for wrapped text)
-  local lines = vim.api.nvim_buf_get_lines(0, row - 1, row + 1, false)
-  local text = table.concat(lines, "\n")
-  -- Find the word/path under cursor by expanding outward
-  -- Look for continuous non-whitespace that might be a path
-  local line = lines[1]
-  -- Find start of path (go backward from cursor)
-  local start_pos = col
-  while start_pos > 1 and line:sub(start_pos - 1, start_pos - 1):match("[^%s]") do
-    start_pos = start_pos - 1
-  end
-  -- Find end of path (go forward from cursor)
-  local end_pos = col
-  while end_pos <= #line and line:sub(end_pos, end_pos):match("[^%s]") do
-    end_pos = end_pos + 1
-  end
-  -- Extract the token under cursor
-  local token = line:sub(start_pos, end_pos - 1)
-  -- Try to parse "path:line:col" or "path:line" or just "path"
-  local path, lnum, cnum
-  -- Pattern 1: path:line:col
-  path, lnum, cnum = token:match("^(.+):(%d+):(%d+)")
-  -- Pattern 2: path:line
-  if not path then
-    path, lnum = token:match("^(.+):(%d+)")
-  end
-  -- Pattern 3: just path
-  if not path then
-    path = token:match("^(.+)$")
-  end
-  if not path or path == "" then
-    vim.notify("No file path found under cursor", vim.log.levels.WARN)
-    return
-  end
-  -- Expand path (handles ~, ., .., $VAR)
-  path = vim.fn.expand(path)
-  -- If path is not absolute, try to find it relative to current file or cwd
-  if not vim.startswith(path, "/") then
-    local current_file_dir = vim.fn.expand("%:p:h")
-    local candidates = {
-      path,  -- relative to cwd
-      current_file_dir .. "/" .. path,  -- relative to current file
-    }
-    local found = false
-    for _, candidate in ipairs(candidates) do
-      if vim.fn.filereadable(candidate) == 1 then
-        path = candidate
-        found = true
-        break
-      end
-    end
-    if not found then
-      vim.notify("File not found: " .. path, vim.log.levels.WARN)
-      return
-    end
-  else
-    -- Absolute path - check if it exists
-    if vim.fn.filereadable(path) == 0 then
-      vim.notify("File not readable: " .. path, vim.log.levels.WARN)
-      return
-    end
-  end
-  -- Find the best window to open the file in
-  local current_buf = vim.api.nvim_win_get_buf(vim.api.nvim_get_current_win())
-  local is_terminal = vim.bo[current_buf].buftype == "terminal"
+-- ── Window resize ─────────────────────────────────────────────────────────────
+map("n", "<S-Left>", function()
+  require("utils.window").change_width("left")
+end, { desc = "Resize window left", silent = true })
+map("n", "<S-Right>", function()
+  require("utils.window").change_width("right")
+end, { desc = "Resize window right", silent = true })
+map("n", "<S-Up>", function()
+  require("utils.window").change_width("up")
+end, { desc = "Resize window up", silent = true })
+map("n", "<S-Down>", function()
+  require("utils.window").change_width("down")
+end, { desc = "Resize window down", silent = true })
 
-  if is_terminal then
-    -- Jump to the previous window (usually your main editor)
-    vim.cmd("wincmd p")
-  end
-  -- Open the file
-  vim.cmd("edit " .. vim.fn.fnameescape(path))
-  -- Jump to line and column if specified
-  if lnum then
-    local line_num = tonumber(lnum)
-    local col_num = cnum and (tonumber(cnum) - 1) or 0  -- columns are 0-indexed
-    -- Ensure we don't go past the end of the file
-    local line_count = vim.api.nvim_buf_line_count(0)
-    if line_num > line_count then
-      line_num = line_count
-    end
-    vim.api.nvim_win_set_cursor(0, { line_num, col_num })
-    -- Center the screen on the target line
-    vim.cmd("normal! zz")
-  end
-end, { desc = "Goto file", noremap = true, silent = true } )
+map("n", "+", "<C-w>=", { desc = "Equalize windows", silent = true })
 
--- Resize
-map({ "n" }, "<S-Left>", function()
-  require("utils.window").change_width "left"
-end, { desc = "Increase Left", silent = true })
-map({ "n" }, "<S-Right>", function()
-  require("utils.window").change_width "right"
-end, { desc = "Increase Right", silent = true })
-map({ "n" }, "<S-Up>", function()
-  require("utils.window").change_width "up"
-end, { desc = "Increase Up", silent = true })
-map({ "n" }, "<S-Down>", function()
-  require("utils.window").change_width "down"
-end, { desc = "Increase Down", silent = true })
+-- ── Navigation ────────────────────────────────────────────────────────────────
 
--- Move lines
-map("n", "<A-j>", ":m .+1<CR>==", { desc = "Move down" })
-map("n", "<A-k>", ":m .-2<CR>==", { desc = "Move up" })
-map("i", "<A-j>", "<Esc>:m .+1<CR>==gi", { desc = "Move down" })
-map("i", "<A-k>", "<Esc>:m .-2<CR>==gi", { desc = "Move up" })
-map("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move down" })
-map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move up" })
-map("x", "<A-j>", ":move '>+1<CR>gv-gv", { desc = "Move up" })
-map("x", "<A-k>", ":move '<-2<CR>gv-gv", { desc = "Move down" })
+-- Wrap-aware j/k (expr; honours count for jumplist-friendly moves)
+map(
+  { "n", "x" },
+  "j",
+  "v:count == 0 ? 'gj' : 'j'",
+  { expr = true, silent = true, desc = "Down (wrap-aware)" }
+)
+map(
+  { "n", "x" },
+  "k",
+  "v:count == 0 ? 'gk' : 'k'",
+  { expr = true, silent = true, desc = "Up (wrap-aware)" }
+)
+map(
+  { "n", "x" },
+  "<Down>",
+  "v:count == 0 ? 'gj' : 'j'",
+  { expr = true, silent = true, desc = "Down (wrap-aware)" }
+)
+map(
+  { "n", "x" },
+  "<Up>",
+  "v:count == 0 ? 'gk' : 'k'",
+  { expr = true, silent = true, desc = "Up (wrap-aware)" }
+)
 
--- Stay in indent mode, move text up and down
-map("v", "<", "<gv", { desc = "Increase indent" })
-map("v", ">", ">gv", { desc = "Decrease indent" })
+-- Keep cursor centred when scrolling or jumping through search matches
+map("n", "n", "nzzzv", { desc = "Next match (centred)", silent = true })
+map("n", "N", "Nzzzv", { desc = "Prev match (centred)", silent = true })
 
--- Better up/down (deals with word wrap)
-if vim.opt.wrap:get() then
-  map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
-  map({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
-  map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
-  map({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
-end
+-- Goto file under cursor (supports path:line:col notation)
+map(
+  "n",
+  "gf",
+  buf.goto_file_under_cursor,
+  { desc = "Goto file (path:line:col)", noremap = true, silent = true }
+)
 
+-- ── Search ────────────────────────────────────────────────────────────────────
+
+-- <CR> clears hlsearch when active; otherwise behaves normally
 map("n", "<CR>", function()
-  if vim.opt.hlsearch:get() then
-    vim.cmd.nohl()
+  if vim.v.hlsearch == 1 then
+    vim.cmd.nohlsearch()
     return ""
-  else
-    return "<CR>"
   end
-end, { expr = true })
+  return "<CR>"
+end, { expr = true, desc = "Clear hlsearch / confirm" })
 
--- Diagnostics
+map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear hlsearch", silent = true })
 
-local diag_focus_id = "diagnostic_float"
-local function diag_open(scope)
-  vim.diagnostic.open_float(nil, {
-    scope = scope or "cursor",
-    focusable = true,
-    focus_id = diag_focus_id,
-    source = "if_many",
-    close_events = { "CursorMoved", "CursorMovedI", "InsertEnter", "InsertEnter" },
-  })
-end
+-- Search/replace word under cursor (pre-filled, cursor before flags)
+map(
+  "n",
+  "<leader>rw",
+  ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>",
+  { desc = "Replace word under cursor" }
+)
 
-local function diag_jump(count)
-  local jumped = vim.diagnostic.jump({ count = count, wrap = true })
-  if jumped then
-    vim.schedule(function() diag_open("cursor") end)
-  end
-end
+-- ── Editing ───────────────────────────────────────────────────────────────────
 
+-- Line movement
+map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move line down", silent = true })
+map("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "Move line up", silent = true })
+map("i", "<A-j>", "<Esc><cmd>m .+1<cr>==gi", { desc = "Move line down", silent = true })
+map("i", "<A-k>", "<Esc><cmd>m .-2<cr>==gi", { desc = "Move line up", silent = true })
+map("v", "<A-j>", ":m '>+1<cr>gv=gv", { desc = "Move selection down", silent = true })
+map("v", "<A-k>", ":m '<-2<cr>gv=gv", { desc = "Move selection up", silent = true })
+map("x", "<A-j>", ":move '>+1<cr>gv-gv", { desc = "Move selection down", silent = true })
+map("x", "<A-k>", ":move '<-2<cr>gv-gv", { desc = "Move selection up", silent = true })
+
+-- Indent and stay in visual mode
+map("v", "<", "<gv", { desc = "Indent left", silent = true })
+map("v", ">", ">gv", { desc = "Indent right", silent = true })
+
+-- Join line without moving cursor
+map("n", "J", "mzJ`z", { desc = "Join line (keep cursor position)", silent = true })
+
+-- Delete word before cursor in insert mode (mirrors <C-w> but for terminal users)
+map("i", "<C-BS>", "<C-W>", { desc = "Delete word before cursor", noremap = true })
+
+-- ── Diagnostics ───────────────────────────────────────────────────────────────
 map("n", "]d", function()
-  diag_jump(1)
-end, { desc = "Next diagnostic" }
-)
+  buf.diag_jump(1)
+end, { desc = "Next diagnostic", silent = true })
 map("n", "[d", function()
-  diag_jump(-1)
-end, { desc = "Prev diagnostic" }
-)
+  buf.diag_jump(-1)
+end, { desc = "Prev diagnostic", silent = true })
 map("n", "D", function()
-  diag_open("line")
-end, { desc = "[D]iagnostic Line"}
-)
+  buf.diag_open("line")
+end, { desc = "Diagnostic (line)", silent = true })
 
+-- ── Folds ─────────────────────────────────────────────────────────────────────
 map("n", "F", function()
   if vim.fn.foldlevel(".") > 0 then
     vim.cmd("normal! za")
   end
-end, { noremap = true, silent = true })
+end, { desc = "Toggle fold", noremap = true, silent = true })
 
--- buffers
-map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
-map("n", "L", "<cmd>bnext<cr>", { desc = "Next buffer" })
-map("n", "<leader>bm", ":tabnew %<cr>", { desc = "Buffer fullscreen" })
-map("n", "C", ":b#|bd#<cr>", { desc = "Close current buffer" })
--- map("n", "D", ":bd<cr>", { desc = "Delete current buffer" })
-map("n", "+", "<C-w>=", { desc = "Equalize buffers" })
+-- ── Quickfix ──────────────────────────────────────────────────────────────────
+map("n", "]q", "<cmd>cnext<cr>zz", { desc = "Next quickfix", silent = true })
+map("n", "[q", "<cmd>cprev<cr>zz", { desc = "Prev quickfix", silent = true })
+map("n", "]Q", "<cmd>clast<cr>zz", { desc = "Last quickfix", silent = true })
+map("n", "[Q", "<cmd>cfirst<cr>zz", { desc = "First quickfix", silent = true })
+map("n", "<leader>xq", "<cmd>copen<cr>", { desc = "Open quickfix list", silent = true })
 
--- various
-map("n", "<leader>q", "<cmd>qa<CR>", { desc = "Quit all buffers" })
-map("i", "<C-BS>", "<C-W>", { desc = "Remove word before", noremap = true })
-map("n", "<leader>w", "<cmd>silent write<cr>", { desc = "Save the current file" })
-map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Stop highlighting"})
+-- ── Buffer management ─────────────────────────────────────────────────────────
+map("n", "H", "<cmd>bprevious<cr>", { desc = "Prev buffer", silent = true })
+map("n", "L", "<cmd>bnext<cr>", { desc = "Next buffer", silent = true })
+map("n", "C", "<cmd>b#|bd#<cr>", { desc = "Close current buffer", silent = true })
+map("n", "<leader>bm", "<cmd>tabnew %<cr>", { desc = "Buffer monocle (new tab)", silent = true })
+map("n", "<leader>be", buf.open_in_file_explorer, {
+  desc = "Explore file location",
+  silent = true,
+})
+map(
+  "n",
+  "<leader>by",
+  buf.copy_file_to_clipboard,
+  { desc = "Yank file to clipboard", silent = true }
+)
+
+-- ── Misc ──────────────────────────────────────────────────────────────────────
+map("n", "<leader>q", "<cmd>qa<cr>", { desc = "Quit all", silent = true })
+map("n", "<leader>w", "<cmd>silent write<cr>", { desc = "Save file", silent = true })
+map("n", "dd", function()
+  return vim.api.nvim_get_current_line():match("^%s*$") and '"_dd' or "dd"
+end, { expr = true, desc = "Delete line (skip register if blank)" })
+
+map("n", "<leader>ur", function()
+  local name = vim.g.colors_name or "ddob-kanagawa"
+  vim.cmd("silent! colorscheme " .. name)
+  vim.notify("Reloaded colorscheme: " .. name)
+end, { desc = "Reload colorscheme", silent = true })

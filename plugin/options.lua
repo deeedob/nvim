@@ -12,9 +12,6 @@ vim.opt.joinspaces = false
 vim.opt.inccommand = "split"
 vim.opt.cpoptions = "aAceFs_B"
 vim.opt.mouse = "a"
-vim.opt.guicursor = "n-v-c-sm:block-Cursor,"
-  .. "i-ci-ve:ver30-blinkwait200-blinkon800,"
-  .. "r-cr-o:hor20"
 vim.opt.smoothscroll = true
 
 -- >> UI & Appearance
@@ -31,6 +28,7 @@ vim.opt.showmode = false
 vim.opt.showcmd = false
 vim.opt.laststatus = 3
 vim.opt.visualbell = true
+-- Single authoritative guicursor definition (no blink - cleaner across terminal emulators)
 vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20"
 vim.opt.title = true
 vim.opt.titlestring = "%t (%f)"
@@ -42,12 +40,11 @@ vim.opt.pumheight = 5 -- Maximum height of popup menu.
 vim.opt.showmatch = false -- Do not jump to matching brackets.
 
 -- >> Windows, Splits & Diff
+vim.o.winborder = "rounded"
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.diffopt:append({
   "vertical",
-  "iwhiteall",
-  "iwhiteeol",
   "indent-heuristic",
   "hiddenoff",
   "closeoff",
@@ -67,16 +64,14 @@ vim.opt.shiftround = true
 -- >> Text & Line Breaking
 vim.opt.breakindent = true
 vim.opt.linebreak = true
-vim.opt.formatoptions:remove "o"
+vim.opt.formatoptions:remove("o")
 vim.opt.foldtext = "v:lua.NeatFoldText()"
 
 -- >> Search
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.hlsearch = true
-if vim.bo.modifiable then
-    vim.opt.fileencoding = 'utf-8'
-end
+vim.opt.fileencoding = "utf-8"
 vim.opt.shada = { "!", "/1000", "'1000", "<1000", ":1000", "s10000", "h" }
 if jit.os == "windows" then
   vim.opt.shada:append({ "rA:", "rB:", "rC:", "rC:/Temp" })
@@ -95,7 +90,7 @@ vim.opt.grepprg = "rg --vimgrep"
 vim.opt.grepformat = "%f:%l:%c:%m"
 
 -- >> Diagnostic
-vim.diagnostic.config {
+vim.diagnostic.config({
   underline = true,
   virtual_text = false,
   virtual_lines = false,
@@ -123,7 +118,7 @@ vim.diagnostic.config {
     focusable = false,
     source = true,
   },
-}
+})
 
 local wildignores = {
   "*.spl",

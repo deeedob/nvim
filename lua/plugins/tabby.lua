@@ -20,9 +20,9 @@ return {
   config = function()
     vim.o.showtabline = 2
 
-    require("scope").setup {}
+    require("scope").setup({})
 
-    local highlights = require "tabby.module.highlight"
+    local highlights = require("tabby.module.highlight")
 
     local theme = {
       head = "TabLine",
@@ -38,7 +38,7 @@ return {
       current = "TabLineFill",
     }
 
-    local devicons = require "nvim-web-devicons"
+    local devicons = require("nvim-web-devicons")
 
     local function ensure_hl_obj(hl)
       if type(hl) == "string" then
@@ -114,7 +114,7 @@ return {
       table.insert(coms, {
         type = "text",
         text = {
-          vim.fn.expand "%:.", -- get current bufname local to project dir
+          vim.fn.expand("%:."), -- get current bufname local to project dir
           hl = theme.current,
         },
       })
@@ -142,7 +142,7 @@ return {
           if not icon then
             icon = ""
           end
-          icon_hle = ensure_hl_obj(icon_hl)
+          local icon_hle = ensure_hl_obj(icon_hl)
 
           table.insert(coms, {
             type = "text",
@@ -178,8 +178,8 @@ return {
       return coms
     end
 
-    require("tabby").setup {
+    require("tabby").setup({
       components = components,
-    }
+    })
   end,
 }

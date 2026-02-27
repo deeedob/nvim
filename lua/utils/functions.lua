@@ -1,43 +1,53 @@
 local M = {}
 
+--- Open a web search for the word under the cursor.
+--- @param url_template string  A format string with a single `%s` placeholder
+---                             that will be replaced by the (URL-encoded) word.
 function M.search_current_web(url_template)
-  local current_word = vim.fn.expand "<cword>"
-  if not current_word or current_word == "" then
+  local word = vim.fn.expand("<cword>")
+  if not word or word == "" then
     vim.notify("No word under cursor.", vim.log.levels.WARN)
     return
   end
-  local escaped_word = string.gsub(current_word, " ", "+")
-  local link = string.format(url_template, escaped_word)
-  vim.notify("Opening: " .. link, vim.log.levels.INFO)
-  vim.ui.open(link)
+  local encoded = word:gsub(" ", "+")
+  local url = url_template:format(encoded)
+  vim.notify("Opening: " .. url, vim.log.levels.INFO)
+  vim.ui.open(url)
 end
 
+--- Reset the terminal emulator's background/foreground colours to match the
+--- current Neovim colorscheme via OSC escape sequences.
+--- Registers ColorScheme / UIEnter / VimLeavePre autocmds once called.
 function M.resetTerminalBg()
-  -- Reset Terminal Background color to current ttheme
-  local handle = io.popen "tty"
-  local tty = handle:read "*a"
-  handle:close()
-
-  if tty:find "not a tty" then
+  local handle = io.popen("tty")
+  if not handle then
     return
   end
+  local tty = handle:read("*a")
+  handle:close()
 
-  local reset = function()
+  if not tty or tty:find("not a tty") then
+    return
+  end
+  tty = tty:gsub("%s+$", "") -- trim trailing newline
+
+  local function reset()
     os.execute('printf "\\033]111\\007" > ' .. tty)
   end
 
-  local update = function()
-    local normal = vim.api.nvim_get_hl_by_name("Normal", true)
-    local bg = normal["background"]
-    local fg = normal["foreground"]
+  local function update()
+    -- nvim_get_hl supersedes the deprecated nvim_get_hl_by_name
+    local hl = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+    local bg = hl.bg
+    local fg = hl.fg
     if bg == nil then
-      return reset()
+      reset()
+      return
     end
+    local bghex = ("#%06x"):format(bg)
+    local fghex = ("#%06x"):format(fg or 0xffffff)
 
-    local bghex = string.format("#%06x", bg)
-    local fghex = string.format("#%06x", fg)
-
-    if os.getenv "TMUX" then
+    if os.getenv("TMUX") then
       os.execute('printf "\\ePtmux;\\e\\033]11;' .. bghex .. '\\007\\e\\\\"')
       os.execute('printf "\\ePtmux;\\e\\033]12;' .. fghex .. '\\007\\e\\\\"')
     else
@@ -46,49 +56,22 @@ function M.resetTerminalBg()
     end
   end
 
-  local setup = function()
-    vim.api.nvim_create_autocmd(
-      { "ColorScheme", "UIEnter" },
-      { callback = update }
-    )
-    vim.api.nvim_create_autocmd({ "VimLeavePre" }, { callback = reset })
-  end
-
-  setup()
-  local b, e = require("utils.buffer").get_visual_pos()
-  return vim.api.nvim_buf_get_text(0, b[1] - 1, b[2] - 1, e[1] - 1, e[2], {})
+  local grp = vim.api.nvim_create_augroup("ddob/terminal-bg", { clear = true })
+  vim.api.nvim_create_autocmd({ "ColorScheme", "UIEnter" }, { group = grp, callback = update })
+  vim.api.nvim_create_autocmd({ "VimLeavePre" }, { group = grp, callback = reset })
+  update() -- apply immediately
 end
 
----@param entry cmp.Entry
-function M.auto_brackets(entry)
-  local cmp = require "cmp"
-  local Kind = cmp.lsp.CompletionItemKind
-  local item = entry:get_completion_item()
-  if vim.tbl_contains({ Kind.Function, Kind.Method }, item.kind) then
-    local cursor = vim.api.nvim_win_get_cursor(0)
-    local prev_char = vim.api.nvim_buf_get_text(
-      0,
-      cursor[1] - 1,
-      cursor[2],
-      cursor[1] - 1,
-      cursor[2] + 1,
-      {}
-    )[1]
-    if prev_char ~= "(" and prev_char ~= ")" then
-      local keys =
-        vim.api.nvim_replace_termcodes("()<left>", false, false, true)
-      vim.api.nvim_feedkeys(keys, "i", true)
-    end
-  end
-end
-
+--- Walk upward from the current file to find the project root.
+--- Recognises .git, CMakePresets.json, and requirements.txt.
+---@return string|nil
 function M.find_project_root()
-  local root = vim.fs.find(
+  local markers = vim.fs.find(
     { ".git", "CMakePresets.json", "requirements.txt" },
     { upward = true }
   )
-  if root and #root > 0 then
-    return vim.fn.fnamemodify(root[1], ":h")
+  if markers and #markers > 0 then
+    return vim.fn.fnamemodify(markers[1], ":h")
   end
   return nil
 end

@@ -32,7 +32,7 @@ return {
       table.insert(cmd, "--log=erro")
     end
 
-    local cmake = require "cmake-tools"
+    local cmake = require("cmake-tools")
     if cmake.is_cmake_project() then
       local build_dir = cmake.get_build_directory()
       if build_dir and build_dir.filename then
@@ -74,23 +74,20 @@ return {
   },
 
   on_attach = function(client, bufnr)
-    vim.keymap.set(
-      "n",
-      "<leader>ll",
-      "<cmd>ClangdSwitchSourceHeader<cr>",
-      { desc = "Switch Source/Header (C/C++)", buffer = bufnr }
-    )
-    vim.keymap.set(
-      "n",
-      "<leader>lA",
-      "<cmd>ClangdAST<cr>",
-      { desc = "AST toggle (C/C++)", buffer = bufnr }
-    )
-    vim.keymap.set(
-      "n",
-      "<leader>ui",
-      "<cmd>ClangdToggleInlayHints<cr>",
-      { desc = "LSP Toggle Inlay Hints (C/C++)", buffer = bufnr }
-    )
+    vim.keymap.set("n", "<leader>ll", "<cmd>ClangdSwitchSourceHeader<cr>", {
+      desc = "Switch source/header (C/C++)",
+      buffer = bufnr,
+      silent = true,
+    })
+    vim.keymap.set("n", "<leader>lA", "<cmd>ClangdAST<cr>", {
+      desc = "AST toggle (C/C++)",
+      buffer = bufnr,
+      silent = true,
+    })
+    vim.keymap.set("n", "<leader>ui", "<cmd>ClangdToggleInlayHints<cr>", {
+      desc = "Toggle inlay hints (C/C++)",
+      buffer = bufnr,
+      silent = true,
+    })
   end,
 }

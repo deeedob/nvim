@@ -21,10 +21,10 @@ return {
     {
       "<leader>tc",
       function()
-        local file = vim.fn.expand "%"
+        local file = vim.fn.expand("%")
         local path = vim.fn.fnamemodify(file, ":h")
         if vim.fn.isdirectory(path) then
-          local tterm = require "toggleterm.terminal"
+          local tterm = require("toggleterm.terminal")
           local t, ok = tterm.get_or_create_term(0, path)
           tterm.Terminal.open(t, 15, "horizontal")
         else
@@ -37,16 +37,16 @@ return {
     {
       "<leader>tb",
       function()
-        local cmake = require "cmake-tools"
+        local cmake = require("cmake-tools")
         if cmake.is_cmake_project() then
           local build_dir = cmake.get_build_directory()
           if build_dir and build_dir ~= "" then
             local tterm = require("toggleterm.terminal").Terminal
-            local term = tterm:new {
+            local term = tterm:new({
               cmd = "cd " .. build_dir .. " && $SHELL",
               direction = "horizontal",
               size = 15,
-            }
+            })
             term:toggle()
           else
             vim.notify("CMake build directory not found!", vim.log.levels.WARN)
@@ -88,7 +88,7 @@ return {
     },
   },
   config = function()
-    require("toggleterm").setup {
+    require("toggleterm").setup({
       open_mapping = [[<c-\>]],
       size = function(term)
         if term.direction == "horizontal" then
@@ -113,6 +113,6 @@ return {
         WinBarInactive = { link = "WinBarNC" },
         MatchParen = { link = "None" },
       },
-    }
+    })
   end,
 }

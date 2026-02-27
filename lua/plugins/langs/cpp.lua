@@ -13,14 +13,14 @@ return {
     config = function()
       local cpp_tools = vim.F.npcall(require, "nt-cpp-tools")
       if cpp_tools then
-        cpp_tools.setup {
+        cpp_tools.setup({
           preview = {
             quit = "<ESC>",
             accept = "i",
           },
           header_extension = "hpp",
           source_extension = "cpp",
-        }
+        })
       end
     end,
   },
@@ -59,7 +59,7 @@ return {
       { "MunifTanjim/nui.nvim" },
     },
     config = function()
-      local cppman = require "cppman"
+      local cppman = require("cppman")
       cppman.setup()
       vim.keymap.set("n", "<leader>cDc", function()
         cppman.input()

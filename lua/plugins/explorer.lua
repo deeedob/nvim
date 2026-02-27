@@ -1,4 +1,4 @@
-local plug = require "utils.plugin"
+local plug = require("utils.plugin")
 
 return {
   {
@@ -25,11 +25,10 @@ return {
       {
         "<leader>_",
         function()
-          if not plug.loaded "cmake-tools" then
+          if not plug.loaded("cmake-tools") then
             return
           end
-          local build_dir =
-            require("cmake-tools").get_build_directory().filename
+          local build_dir = require("cmake-tools").get_build_directory().filename
           require("oil").open(build_dir)
         end,
         desc = "Explore Build",
@@ -68,11 +67,11 @@ return {
     },
 
     init = function(p)
-      if not plug.loaded "oil" then
+      if not plug.loaded("oil") then
         vim.api.nvim_create_autocmd("BufNew", {
           callback = function()
-            if vim.fn.isdirectory(vim.fn.expand "<afile>") == 1 then
-              require("lazy").load { plugins = { "oil.nvim" } }
+            if vim.fn.isdirectory(vim.fn.expand("<afile>")) == 1 then
+              require("lazy").load({ plugins = { "oil.nvim" } })
               -- Once oil is loaded, we can delete this autocmd
               return true
             end

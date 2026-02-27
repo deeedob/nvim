@@ -94,6 +94,7 @@ return {
       current_line_blame_formatter = "<author>, <author_time:%Y-%m-%d>",
       max_file_length = 40000,
       attach_to_untracked = true,
+      sign_priority = 2000,
     },
   },
 

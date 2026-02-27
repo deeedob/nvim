@@ -47,10 +47,7 @@ local function install(pack, version)
   end, 0)
 
   pack:once("install:success", function()
-    local msg2 = ("[%s] %s"):format(
-      pack.name,
-      version and "updated." or "installed."
-    )
+    local msg2 = ("[%s] %s"):format(pack.name, version and "updated." or "installed.")
     notifyOpts.icon = " "
     vim.defer_fn(function()
       vim.notify(msg2, nil, notifyOpts)
@@ -64,17 +61,17 @@ local function install(pack, version)
     end, 0)
   end)
 
-  pack:install { version = version }
+  pack:install({ version = version })
 end
 
 local function syncPackages(ensurePacks)
-  local masonReg = require "mason-registry"
+  local masonReg = require("mason-registry")
 
   local function refreshCallback()
     -- Auto-install missing packages & auto-update installed ones
     vim.iter(ensurePacks):each(function(packName)
       -- Extract package name and pinned version if specified
-      local name, pinnedVersion = packName:match "([^@]+)@?(.*)"
+      local name, pinnedVersion = packName:match("([^@]+)@?(.*)")
       if not masonReg.has_package(name) then
         return
       end
@@ -97,7 +94,7 @@ local function syncPackages(ensurePacks)
     vim.iter(installedPackages):each(function(packName)
       -- Check if installed package is in our ensure list (without version suffix)
       local isEnsured = vim.iter(ensurePacks):any(function(ensurePack)
-        local name = ensurePack:match "([^@]+)"
+        local name = ensurePack:match("([^@]+)")
         return name == packName
       end)
 
@@ -118,7 +115,7 @@ return {
   "williamboman/mason.nvim",
   init = function()
     -- Make mason packages available before loading it; allows to lazy-load mason.
-    vim.env.PATH = vim.fn.stdpath "data" .. "/mason/bin:" .. vim.env.PATH
+    vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin:" .. vim.env.PATH
     -- Do not crowd home directory with NPM cache folder
     vim.env.npm_config_cache = vim.env.HOME .. "/.cache/npm"
   end,

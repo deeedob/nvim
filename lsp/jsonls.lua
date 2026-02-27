@@ -8,11 +8,16 @@ return {
   },
   root_markers = { ".git" },
   single_file_support = true,
-  -- https://raw.githubusercontent.com/microsoft/vscode/master/extensions/json-language-features/package.json
-  settings = {
-    json = {
-      schemas = require("schemastore").json.schemas(),
-      validate = { enable = true },
-    },
-  },
+  -- Inject schemastore schemas after the server starts, when plugins are ready.
+  on_new_config = function(config)
+    local ok, schemastore = pcall(require, "schemastore")
+    if ok then
+      config.settings = vim.tbl_deep_extend("force", config.settings or {}, {
+        json = {
+          schemas = schemastore.json.schemas(),
+          validate = { enable = true },
+        },
+      })
+    end
+  end,
 }

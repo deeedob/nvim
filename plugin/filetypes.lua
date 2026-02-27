@@ -7,6 +7,7 @@ vim.filetype.add({
     log = "log",
     ini = "toml",
     gotmpl = "gotmpl",
+    qdoc = "qdoc",
   },
 
   filename = {
@@ -48,4 +49,3 @@ vim.filetype.add({
     },
   },
 })
-

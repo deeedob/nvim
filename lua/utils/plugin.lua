@@ -2,24 +2,20 @@ local M = {}
 
 M.setup = function()
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-  local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
+  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
   if not vim.uv.fs_stat(lazypath) then
-    local out = vim.fn.system {
+    local out = vim.fn.system({
       "git",
       "clone",
       "--filter=blob:none",
       "--branch=stable",
       lazyrepo,
       lazypath,
-    }
+    })
     if vim.v.shell_error ~= 0 then
       vim.notify(
-        "Failed to clone lazy.nvim:\n"
-          .. "  "
-          .. out
-          .. "\n"
-          .. "Press any key to exit...",
+        "Failed to clone lazy.nvim:\n" .. "  " .. out .. "\n" .. "Press any key to exit...",
         vim.log.levels.ERROR
       )
       vim.fn.getchar()
@@ -34,7 +30,7 @@ M.setup = function()
     { import = "plugins/langs" },
   }, {
     defaults = {
-      lazy = false,
+      lazy = true,
     },
     local_spec = false, -- disable .lazy.lua
     rocks = {
@@ -66,7 +62,7 @@ M.setup = function()
 end
 
 M.exists = function(name)
-  vim.validate { name = { name, "string" } }
+  vim.validate({ name = { name, "string" } })
   local ok, lazy = pcall(require, "lazy")
   if not ok then
     return false

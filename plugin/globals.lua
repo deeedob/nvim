@@ -1,98 +1,87 @@
-_G['RELOAD'] = function(modname)
-    if vim then
-        if vim.is_thread() then
-            package.loaded[modname] = nil
-        elseif vim.v.vim_did_enter == 1 then
-            package.loaded[modname] = nil
-            if vim.loader and vim.loader.enabled then
-                vim.loader.reset(modname)
-            end
-        end
-    else
-        package.loaded[modname] = nil
-    end
-    return require(modname)
+-- Global development helpers available in every Lua context.
+-- These are intentionally placed in _G for interactive/REPL use.
+-- Do NOT use these in production code paths — use proper requires instead.
+
+--- Reload a Lua module, invalidating both package.loaded and the Neovim
+--- bytecode cache so live changes take effect without restarting.
+---@param modname string
+---@return unknown
+_G.RELOAD = function(modname)
+  package.loaded[modname] = nil
+  if vim.loader then
+    vim.loader.reset(modname)
+  end
+  return require(modname)
 end
 
-_G['P'] = function(...)
-    local args = { ... }
-    local inspected_args = vim.tbl_map(vim.inspect, args)
-    print(table.unpack(inspected_args))
-    return ...
+--- Pretty-print any number of values using vim.inspect and return them
+--- unchanged, so the function is safe to use inside expressions.
+---@param ... any
+---@return ...
+_G.P = function(...)
+  local args = { ... }
+  print(table.unpack(vim.tbl_map(vim.inspect, args)))
+  return ...
 end
 
-_G['PRINT'] = _G['P']
+_G.PRINT = _G.P
 
-_G['PASTE'] = function(data)
-    if not vim then
-        error(debug.traceback 'This platform is unsupported')
-    end
-
-    local tmp = data
-    if not vim.isarray(tmp) then
-        if type(tmp) == type '' then
-            tmp = vim.split(tmp, '\n')
-        else
-            tmp = vim.split(vim.inspect(tmp), '\n')
-        end
-    else
-        tmp = vim.deepcopy(tmp)
-    end
-    vim.paste(
-        vim.tbl_map(function(v)
-            return type(v) == type '' and v or vim.inspect(v)
-        end, tmp),
-        -1
-    )
+--- Paste arbitrary data (string / table / any) into the current buffer at the
+--- cursor position, similar to a register paste.
+---@param data any
+_G.PASTE = function(data)
+  local lines
+  if vim.isarray(data) then
+    lines = vim.deepcopy(data)
+  elseif type(data) == "string" then
+    lines = vim.split(data, "\n")
+  else
+    lines = vim.split(vim.inspect(data), "\n")
+  end
+  vim.paste(
+    vim.tbl_map(function(v)
+      return type(v) == "string" and v or vim.inspect(v)
+    end, lines),
+    -1
+  )
 end
 
-_G['PERF'] = function(msg, ...)
-    local args = { ... }
-    assert(type(args[1]) == 'function', debug.traceback 'The first argument must be a function')
-    assert(not msg or type(msg) == 'string', debug.traceback 'msg must be a string')
-    msg = msg or 'Func reference elpse time:'
-    local func = args[1]
-    table.remove(args, 1)
-    -- local start = os.time()
-    local start = os.clock()
-    local data = func(unpack(args))
-    print(msg, ('%.2f s'):format(os.clock() - start))
-    -- print(msg, ('%.2f s'):format(os.difftime(os.time(), start)))
-    return data
+--- Measure the wall-clock time (seconds) of a function call and print it.
+---@param msg string|nil  Label printed before the elapsed time
+---@param fn function     Function to benchmark
+---@param ... any         Arguments forwarded to fn
+---@return any            Return value(s) of fn
+_G.PERF = function(msg, fn, ...)
+  assert(type(fn) == "function", "PERF: second argument must be a function")
+  assert(msg == nil or type(msg) == "string", "PERF: first argument must be a string or nil")
+  msg = msg or "Elapsed:"
+  local start = os.clock()
+  local result = fn(...)
+  print(msg, ("%.4f s"):format(os.clock() - start))
+  return result
 end
 
+--- Custom foldtext: shows the line count and truncates long first lines so the
+--- fold summary always fits in the current window width.
+--- Referenced by vim.opt.foldtext = "v:lua.NeatFoldText()" in plugin/options.lua.
+_G.NeatFoldText = function()
+  local fold_start = vim.v.foldstart ---@type number
+  local fold_end = vim.v.foldend ---@type number
 
-_G["NeatFoldText"] = function()
-  local end_ = vim.v.foldend --- @type number
-  local start = vim.v.foldstart --- @type number
+  local first = vim.api.nvim_buf_get_lines(0, fold_start - 1, fold_start, true)[1]
+  local last = vim.api.nvim_buf_get_lines(0, fold_end - 1, fold_end, true)[1]
 
-  local lines = { start, end_ }
-  for i, line_nr in ipairs(lines) do
-    local line = vim.api.nvim_buf_get_lines(0, line_nr - 1, line_nr, true)[1]
-    lines[i] = line
+  local columns = vim.api.nvim_win_get_width(0)
+  local line_count = fold_end - fold_start + 1
+
+  -- 10 = format prefix width, 5 = sign/number column heuristic, 3 = separator
+  local needed = #last + 10 + 5 + 3
+  if #first + needed > columns then
+    local overflow = math.abs(#first - columns)
+    local remove = math.ceil(bit.rshift(overflow, 1) + needed + 5)
+    local middle = bit.rshift(#first, 1)
+    first = first:sub(1, middle - remove) .. " […] " .. first:sub(middle + remove)
   end
 
-  --- @cast lines string[]
-
-  do
-    local columns = vim.api.nvim_win_get_width(0)
-    local first_line = lines[1]
-    local first_line_len = #first_line
-
-    -- NOTE: 10 is the magic number for the base width of the template line.
-    --       5 is a heuristic because linenr/sign column width is indeterminable
-    --       3 is the magic number for joining the lines
-    local needed_width = #lines[2] + 10 + 5 + 3
-
-    if first_line_len + needed_width > columns then
-      local overflow = math.abs(first_line_len - columns)
-
-      local remove = math.ceil(bit.rshift(overflow, 1) + needed_width + 5)
-      local middle = bit.rshift(first_line_len, 1)
-
-      lines[1] = first_line:sub(1, middle - remove) .. ' […] ' .. first_line:sub(middle + remove)
-    end
-  end
-
-  return ('   %-6d%s'):format(end_ - start + 1, table.concat(lines, ' … '))
+  return ("   %-6d%s"):format(line_count, table.concat({ first, last }, " … "))
 end
