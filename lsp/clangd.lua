@@ -51,7 +51,7 @@ return {
 
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
   reuse_client = function(client, config)
-    return true
+    return client.name == config.name
   end,
   root_markers = root_markers,
 

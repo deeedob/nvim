@@ -21,27 +21,7 @@ if vim.g.has_ui then
   require("utils.plugin").setup()
 end
 
--- Optional LSP debug logging
-if vim.env.NVIM_LSP_DEBUG then
-  vim.lsp.set_log_level(vim.log.levels.DEBUG)
-  vim.notify("LSP logging: DEBUG\n" .. vim.lsp.get_log_path())
-end
-
--- Apply shared capabilities to every LSP server config before enabling them.
--- Individual lsp/*.lua files may still declare additional capabilities.
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities.textDocument.foldingRange = {
-  dynamicRegistration = false,
-  lineFoldingOnly = true,
-}
-
-local lsp_configs = {}
-for _, f in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
-  local name = vim.fn.fnamemodify(f, ":t:r")
-  table.insert(lsp_configs, name)
-  vim.lsp.config(name, { capabilities = capabilities })
-end
-vim.lsp.enable(lsp_configs)
+require("lsp").setup()
 
 -- Use nvr as $GIT_EDITOR so git commit/rebase buffers open inside Neovim
 if vim.fn.executable("nvr") == 1 then
