@@ -4,8 +4,22 @@ return {
     branch = "master",
     build = ":TSUpdate",
     event = "FileType",
+    lazy = false,
     config = function()
       require("nvim-treesitter.install").prefer_git = true
+
+      local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+      parser_config.zsh = {
+        install_info = {
+          url = "https://github.com/georgeharker/tree-sitter-zsh",
+          files = { "src/parser.c", "src/scanner.c" },
+          branch = "main",
+          generate_requires_npm = false,
+          requires_generate_from_grammar = false,
+        },
+        filetype = "zsh",
+      }
+
       require("nvim-treesitter.configs").setup({
         auto_install = true,
         ensure_installed = {
@@ -16,6 +30,7 @@ return {
           "yaml",
           "regex",
           "bash",
+          "zsh",
         },
         modules = {},
         highlight = {
@@ -66,33 +81,4 @@ return {
       max_lines = 3,
     },
   },
-
-  -- {
-  --   "MeanderingProgrammer/render-markdown.nvim",
-  --   -- dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" }, -- if you use the mini.nvim suite
-  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
-  --   dependencies = {
-  --     "nvim-treesitter/nvim-treesitter",
-  --     "nvim-tree/nvim-web-devicons",
-  --   }, -- if you prefer nvim-web-devicons
-  --   enabled = true,
-  --   opts = {
-  --     -- completions = { lsp = { enabled = true } },
-  --     render_modes = true,
-  --     --   heading = {
-  --     --     left_pad = 1,
-  --     --     right_pad = 1,
-  --     -- },
-  --   anti_conceal = {
-  --       enabled = false,
-  --     },
-  --     overrides = {
-  --       buftype = {
-  --         nofile = {
-  --           code = { left_pad = 0, right_pad = 0 },
-  --         },
-  --       },
-  --     },
-  --   },
-  -- },
 }
