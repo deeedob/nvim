@@ -1,11 +1,24 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
+    branch = "main",
     build = ":TSUpdate",
-    event = "FileType",
     lazy = false,
-    config = function()
+    main = "nvim-treesitter",
+    opts = {
+      auto_install = true,
+      ensure_installed = {
+        "markdown",
+        "markdown_inline",
+        "html",
+        -- "latex",
+        "yaml",
+        "regex",
+        "bash",
+        "zsh",
+      },
+    },
+    init = function()
       require("nvim-treesitter.install").prefer_git = true
 
       local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
@@ -20,46 +33,28 @@ return {
         filetype = "zsh",
       }
 
-      require("nvim-treesitter.configs").setup({
-        auto_install = true,
-        ensure_installed = {
-          "markdown",
-          "markdown_inline",
-          "html",
-          "latex",
-          "yaml",
-          "regex",
-          "bash",
-          "zsh",
-        },
-        modules = {},
-        highlight = {
-          enable = true,
-          disable = function(lang, buf)
-            local disabled_langs = {
-              make = true,
-              comment = require("utils.plugin").exists("todo-comments.nvim") and true or nil,
-              cpp = true, -- treesitter can't work on macros w/o ';' ...
-            }
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          local buf = args.buf
+          local lang = vim.bo[buf].filetype
 
-            if disabled_langs[lang] then
-              return true
-            end
+          local disabled = {
+            make = true,
+            comment = require("utils.plugin").exists("todo-comments.nvim") and true or nil,
+            cpp = true, -- treesitter can't work on macros w/o ';' ...
+          }
+          if disabled[lang] then
+            return
+          end
 
-            local stats = vim.F.npcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
-            -- Disable for files larger than 1MB.
-            return stats and stats.size > (1024 * 1024)
-          end,
-        },
+          local stats = vim.F.npcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
+          if stats and stats.size > (1024 * 1024) then
+            return
+          end
 
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = "<Enter>",
-            node_incremental = "<Enter>",
-            node_decremental = "<BS>",
-          },
-        },
+          pcall(vim.treesitter.start, buf)
+          vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end,
       })
     end,
   },
