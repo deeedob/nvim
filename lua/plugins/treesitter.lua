@@ -21,7 +21,7 @@ return {
     init = function()
       require("nvim-treesitter.install").prefer_git = true
 
-      local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+      local parser_config = require("nvim-treesitter.parsers")
       parser_config.zsh = {
         install_info = {
           url = "https://github.com/georgeharker/tree-sitter-zsh",
