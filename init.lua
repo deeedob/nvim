@@ -2,8 +2,8 @@
 vim.loader.enable()
 
 -- Enforce minimum Neovim version
-if vim.version.lt(vim.version(), { 0, 11 }) then
-  vim.api.nvim_echo({ { "Neovim >= 0.11 is required. Please update.", "ErrorMsg" } }, true, {})
+if vim.version.lt(vim.version(), { 0, 12 }) then
+  vim.api.nvim_echo({ { "Neovim >= 0.12 is required. Please update.", "ErrorMsg" } }, true, {})
   return
 end
 
