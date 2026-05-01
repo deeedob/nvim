@@ -268,6 +268,7 @@ function M.setup()
   hl("DiagnosticInfo", { fg = diag.info })
   hl("DiagnosticHint", { fg = diag.hint })
   hl("DiagnosticOk", { fg = diag.ok })
+  hl("DiagnosticDeprecated", {})
 
   -- DIFF --------------------------------------------------------------------
 
@@ -299,6 +300,8 @@ function M.setup()
   link("InclineNormalNC", "Comment")
 
   hl("RenderMarkdownCode", { bg = ui.bg_m2 })
+
+  link("TreesitterContext", "Folded")
 end
 
 M.setup()

@@ -83,6 +83,16 @@ local function get_lldb_init_commands()
     ("command script import '%s'"):format(register_script),
     "script print('Qt6Renderer pretty printers loaded for LLDB')",
     [[settings set target.process.thread.step-avoid-regexp "std::|__gnu_cxx|QGrpc|QtPrivate"]],
+
+    "process handle -p true -s false -n false SIGSEGV",
+    "process handle -p true -s false -n false SIGBUS",
+    "process handle -p true -s false -n false SIGILL",
+    "process handle -p true -s false -n false SIGFPE",
+    "process handle -p true -s false -n false SIGUSR1",
+    "process handle -p true -s false -n false SIGUSR2",
+
+    "settings set target.process.stop-on-sharedlibrary-events false",
+    "settings set target.process.stop-on-exec false",
   }
 end
 
@@ -173,6 +183,7 @@ local function setup_cpp_configs()
           env = inherit_env,
           enableAutoVariableSummaries = true,
           enableSyntheticChildDebugging = true,
+          exceptionBreakpoints = {},
         },
       })
     )
@@ -202,21 +213,44 @@ local function setup_cpp_configs()
 end
 
 return {
-  "mfussenegger/nvim-dap",
-  dependencies = {
-    {
-      "rcarriga/nvim-dap-ui",
-      dependencies = { "nvim-neotest/nvim-nio" },
+  {
+    "igorlfs/nvim-dap-view",
+    opts = {
+      winbar = {
+        sections = {
+          "scopes",
+          "console",
+          "threads",
+          "breakpoints",
+          "disassembly",
+          "exceptions",
+          "repl",
+          "watches",
+        },
+        default_section = "scopes",
+      },
     },
-    {
-      "jay-babu/mason-nvim-dap.nvim",
-      cmd = { "DapInstall", "DapUninstall" },
-      dependencies = { "mason.nvim" },
-    },
-    "theHamsta/nvim-dap-virtual-text",
-    { "jbyuki/one-small-step-for-vimkind", ft = "lua" },
   },
-  keys = {
+  {
+    url = "https://codeberg.org/Jorenar/nvim-dap-disasm.git",
+    dependencies = "igorlfs/nvim-dap-view",
+    config = true,
+  },
+  {
+    "mfussenegger/nvim-dap",
+    lazy = true,
+    dependencies = {
+      "igorlfs/nvim-dap-view",
+      "https://codeberg.org/Jorenar/nvim-dap-disasm.git",
+      {
+        "jay-babu/mason-nvim-dap.nvim",
+        cmd = { "DapInstall", "DapUninstall" },
+        dependencies = { "mason.nvim" },
+      },
+      "theHamsta/nvim-dap-virtual-text",
+      { "jbyuki/one-small-step-for-vimkind", ft = "lua" },
+    },
+    keys = {
     {
       "<leader>dB",
       function()
@@ -382,14 +416,14 @@ return {
     {
       "<leader>du",
       function()
-        require("dapui").toggle({})
+        require("dap-view").toggle()
       end,
       desc = "Dap UI",
     },
     {
       "<leader>de",
       function()
-        require("dapui").eval()
+        -- require("dapui").eval()
       end,
       desc = "Eval",
       mode = { "n", "v" },
@@ -397,43 +431,19 @@ return {
   },
   config = function()
     local dap = require("dap")
-    local dapui = require("dapui")
-
-    dapui.setup({
-      layouts = {
-        {
-          position = "left",
-          size = 50,
-          elements = {
-            { id = "watches", size = 0.00 },
-            { id = "breakpoints", size = 0.3 },
-            { id = "console", size = 0.5 },
-            { id = "repl", size = 0.25 },
-          },
-        },
-        {
-          position = "bottom",
-          size = 14,
-          elements = {
-            { id = "scopes", size = 0.7 },
-            { id = "stacks", size = 0.3 },
-          },
-        },
-      },
-    })
     require("nvim-dap-virtual-text").setup({})
 
     dap.listeners.before.attach.dapui_config = function()
-      dapui.open()
+      require("dap-view").open()
     end
     dap.listeners.before.launch.dapui_config = function()
-      dapui.open()
+      require("dap-view").open()
     end
     dap.listeners.before.event_terminated.dapui_config = function()
-      dapui.close()
+      require("dap-view").close()
     end
     dap.listeners.before.event_exited.dapui_config = function()
-      dapui.close()
+      require("dap-view").close()
     end
 
     local keymap_restore = {}
@@ -564,4 +574,5 @@ return {
       },
     }
   end,
+  },
 }

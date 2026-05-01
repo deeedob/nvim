@@ -12,6 +12,40 @@ vim.keymap.set("n", "<leader>uc", "<cmd>ToggleListChars<cr>", {
   silent = true,
 })
 
+-- ── CompactSpaces ───────────────────────────────────────────────────────────
+vim.api.nvim_create_user_command("CompactSpaces", function(opts)
+  local start_line = opts.line1 - 1
+  local end_line = opts.line2
+
+  local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line, false)
+
+  for i, line in ipairs(lines) do
+    -- collapse multiple spaces into one
+    line = line:gsub("%s+", " ")
+
+    -- remove space before parentheses
+    line = line:gsub("%s*%(", "(")
+
+    -- remove space before commas
+    line = line:gsub("%s*,%s*", ", ")
+
+    -- trim leading/trailing spaces
+    line = line:gsub("^%s+", ""):gsub("%s+$", "")
+
+    lines[i] = line
+  end
+
+  vim.api.nvim_buf_set_lines(0, start_line, end_line, false, lines)
+end, {
+  range = true,
+  desc = "Compact spaces in selected lines",
+})
+
+vim.keymap.set("v", "<leader>us", ":CompactSpaces<CR>", {
+  desc = "Compact spaces in selection",
+  silent = true,
+})
+
 -- ── WipeWindowlessBufs ────────────────────────────────────────────────────────
 vim.api.nvim_create_user_command("WipeWindowlessBufs", function()
   local count = 0

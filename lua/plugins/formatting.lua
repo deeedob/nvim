@@ -24,6 +24,10 @@ return {
             }
           end,
         },
+        qmlformat = {
+          command = "qmlformat",
+          args = { "-i", "$FILENAME" },
+        },
       },
       formatters_by_ft = {
         lua = { "stylua" },
@@ -32,6 +36,7 @@ return {
         sh = { "shfmt" },
         rust = { "rustfmt" },
         proto = { "buf" },
+        qml = { "qmlformat" },
 
         html = { "prettier" },
         htmldjango = { "prettier" },

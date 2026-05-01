@@ -131,6 +131,7 @@ return {
 
   {
     "gbprod/yanky.nvim",
+    lazy = true,
     dependencies = {
       { "kkharji/sqlite.lua" },
     },
@@ -295,6 +296,42 @@ return {
           },
         },
       })
+    end,
+  },
+  {
+    "t-troebst/perfanno.nvim",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+    },
+    cmd = {
+      "PerfAnnotate",
+      "PerfLoadFlameGraph",
+    },
+    keys = {
+      {
+        "<leader>cp",
+        function()
+          require("utils.cmake_profile").profile_current_target()
+        end,
+        desc = "Code Profile",
+      },
+    },
+    config = function()
+      local perfanno = require("perfanno")
+      local util = require("perfanno.util")
+
+      perfanno.setup({
+        line_highlights = util.make_bg_highlights(nil, "#ff6e40", 10),
+        vt_highlight = util.make_fg_highlight("#ff6e40"),
+
+        annotate_after_load = true,
+        annotate_on_open = true,
+
+        telescope = { enabled = false }, -- avoid telescope
+      })
+
+      vim.keymap.set("n", "<leader>pa", "<cmd>PerfAnnotate<cr>")
+      vim.keymap.set("n", "<leader>pt", "<cmd>PerfToggleAnnotations<cr>")
     end,
   },
 }

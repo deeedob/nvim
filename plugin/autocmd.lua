@@ -14,6 +14,9 @@ autocmd("FileType", {
     "query",
     "notify",
     "dap-float",
+    "dap-view",
+    "dap-view-term",
+    "dap-repl",
     "fugitive",
   },
   callback = function(args)
