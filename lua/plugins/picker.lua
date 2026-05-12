@@ -208,6 +208,14 @@ return {
     "ibhagwan/fzf-lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = "FzfLua",
+    -- Wrap vim.ui.select at startup so any plugin that calls it (e.g. cmake-tools)
+    -- triggers fzf-lua lazy-loading before the first picker opens.
+    init = function()
+      vim.ui.select = function(...)
+        require("fzf-lua") -- triggers lazy load → opts → register_ui_select
+        return vim.ui.select(...)
+      end
+    end,
     keys = function()
       local function fzf(fn, opts)
         return function()
