@@ -137,6 +137,16 @@ local function branches_for_code()
   })
 end
 
+local function open_in_diffview(selected)
+  local hash = (selected[1] or ""):match("^(%w+)")
+  if not hash or hash == "" then
+    vim.notify("Could not parse commit hash", vim.log.levels.WARN)
+    return
+  end
+  -- hash^! is shorthand for hash^..hash: shows only the changes of that commit
+  require("diffview").open({ hash .. "^!" })
+end
+
 local function git_bcommits_range()
   local fzf = require("fzf-lua")
   local actions = require("fzf-lua.actions")
@@ -199,6 +209,7 @@ local function git_bcommits_range()
       ["ctrl-v"] = actions.git_buf_vsplit,
       ["ctrl-t"] = actions.git_buf_tabedit,
       ["ctrl-y"] = { fn = actions.git_yank_commit, exec_silent = true },
+      ["ctrl-e"] = open_in_diffview,
     },
   })
 end
@@ -356,12 +367,16 @@ return {
         -- { "<leader>gb", fzf "git_branches", desc = "FzfLua: Git branches" },
         {
           "<leader>gc",
-          fzf("git_commits"),
+          fzf("git_commits", {
+            actions = { ["ctrl-e"] = open_in_diffview },
+          }),
           desc = "FzfLua: Git commits (repo)",
         },
         {
           "<leader>gC",
-          fzf("git_bcommits"),
+          fzf("git_bcommits", {
+            actions = { ["ctrl-e"] = open_in_diffview },
+          }),
           desc = "FzfLua: Git commits (buffer)",
         },
         {
