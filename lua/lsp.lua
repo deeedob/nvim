@@ -174,6 +174,59 @@ local function setup_attach()
         vim.wo.foldmethod = "expr"
         vim.wo.foldexpr = "v:lua.vim.lsp.foldexpr()"
       end
+
+      -- Highlight hierarchy: LSP semantic tokens (125) > treesitter (100) > syntax (50).
+      -- The priority system handles this automatically, but disabling treesitter highlights
+      -- when semantic tokens are available gives cleaner results (no overlapping highlights).
+      -- vim.treesitter.stop() only removes the highlighter; the parser stays active for
+      -- context, incremental selection, and other treesitter features.
+      if client:supports_method("textDocument/semanticTokens") then
+        vim.treesitter.stop(bufnr)
+      end
+    end,
+  })
+
+  -- Semantic token highlight priority fix.
+  -- The internal highlight loop applies all @lsp.typemod.* groups at priority 127.
+  -- When a token has multiple modifiers (e.g. readonly + fileScope), the last modifier
+  -- applied wins randomly. Fix: re-apply the readonly highlight via highlight_token()
+  -- which uses priority 128 by default (semantic_tokens + 3), so it always wins.
+  vim.api.nvim_create_autocmd("LspTokenUpdate", {
+    group = augroup,
+    callback = function(args)
+      local token = args.data.token
+      if not token.modifiers.readonly then
+        return
+      end
+      local bufnr = args.buf
+      local client_id = args.data.client_id
+      local ft = vim.bo[bufnr].filetype
+      local hl_group = string.format("@lsp.typemod.%s.readonly.%s", token.type, ft)
+      local ns = vim.api.nvim_get_namespaces()["nvim.lsp.semantic_tokens:" .. client_id]
+      if not ns then
+        return
+      end
+      -- LspTokenUpdate fires after the internal loop sets the typemod mark at priority 127.
+      -- Find that extmark and bump its priority to 128 in-place (no duplicate).
+      local marks = vim.api.nvim_buf_get_extmarks(
+        bufnr, ns,
+        { token.line, token.start_col },
+        { token.end_line, token.end_col },
+        { details = true }
+      )
+      for _, mark in ipairs(marks) do
+        if mark[4].hl_group == hl_group then
+          vim.api.nvim_buf_set_extmark(bufnr, ns, token.line, token.start_col, {
+            id = mark[1],
+            hl_group = hl_group,
+            end_line = token.end_line,
+            end_col = token.end_col,
+            priority = vim.hl.priorities.semantic_tokens + 3,
+            strict = false,
+          })
+          return
+        end
+      end
     end,
   })
 
