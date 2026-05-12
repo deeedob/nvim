@@ -27,6 +27,7 @@ vim.filetype.add({
   },
 
   pattern = {
+    [".*%.cmake%.in"] = "cmake",
     [".*/etc/nginx/.*"] = "nginx",
     ["config%.txt"] = "dosini",
     ["%.bash_.*"] = "sh",
